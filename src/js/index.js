@@ -10,14 +10,19 @@ $(document).ready(() => {
     const maze = new Maze(nRows, nCols);
     const cells = maze.getCells();
     const lastCell = cells[cells.length-3];
-    console.log(lastCell.getWalls());
-    const neighs = lastCell.getNeighbors();
+    // console.log(lastCell.getWalls());
+    const neighs = lastCell.getAccessibleNeighbors();
+    console.log(neighs)
+
+    // const cell1 = cells[7]
+    // const cell2 = cells[1]
+    // const cs = [cell1, cell2]
 
 
     setupView(maze);
-    Object.values(neighs).forEach((neigh)=>{
-      if(neigh!==null){
-        $(`#${neigh.row+'-'+neigh.col}`).css("background-color","blue")
+    Object.values(neighs).forEach((c)=>{
+      if(c!==null){
+        $(`#${c.row+'-'+c.col}`).css("background-color","blue")
       }
 
     })

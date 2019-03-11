@@ -1,9 +1,9 @@
 import MazeEntity from './MazeEntity.js';
 
 const WallState = {
-    PENDING: 0,
-    CONFIRMED: 1,
-    REMOVED: 2
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    REMOVED: 'REMOVED'
 }
 
 class Wall extends MazeEntity {
@@ -17,4 +17,5 @@ class Wall extends MazeEntity {
     }
 }
 
-export default Wall;
+export {WallState}
+export default Wall

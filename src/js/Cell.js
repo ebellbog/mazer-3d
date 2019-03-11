@@ -1,4 +1,5 @@
 import MazeEntity from './MazeEntity.js';
+import {WallState} from './Wall.js'
 
 class Cell extends MazeEntity {
     constructor(...args) {
@@ -17,6 +18,7 @@ class Cell extends MazeEntity {
      */
     getNeighbors() {
         const data = this.maze.data, row = this.row, col = this.col;
+        //TODO: this can probably just be an array?
         return {
           left: col > 1? data[row][col-2] : null,
           right: col < data[0].length - 2 ? data[row][col+2] : null,
@@ -30,14 +32,33 @@ class Cell extends MazeEntity {
      * @returns {boolean} Represents whether there is a removed wall between cells
      */
     canAccessCell(cell){
+      return (
+          cell.visited==false
+          && this.isNeighboringCell(cell)
+          && this.getInterveningWall(cell).state === WallState.PENDING
+      )
+    }
 
+    getInterveningWall(cell){
+      if(this.isNeighboringCell(cell)){
+        return this.maze.data[(this.row+cell.row)/2][(this.col+cell.col)/2]
+      }
+      return null;
+    }
+
+    isNeighboringCell(cell){
+      const isNeighboringCoordinateSet = (x1,x2,y1,y2) => (x1==x2 && Math.abs(y1-y2) == 2)
+      return (
+          isNeighboringCoordinateSet(this.row, cell.row, this.col, cell.col)
+          || isNeighboringCoordinateSet(this.col, cell.col, this.row, cell.row)
+      )
     }
 
     /**
      * @returns {Array.<Cell>} List of neighboring cells that are accessible
      */
     getAccessibleNeighbors(){
-
+      return Object.values(this.getNeighbors()).filter((c)=>c&&this.canAccessCell(c))
     }
 
     /**
