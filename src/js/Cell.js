@@ -17,14 +17,7 @@ class Cell extends MazeEntity {
      * @returns {Array.<Cell>} List of neighboring cells
      */
     getNeighbors() {
-        const data = this.maze.data, row = this.row, col = this.col;
-        //TODO: this can probably just be an array?
-        return {
-          left: col > 1? data[row][col-2] : null,
-          right: col < data[0].length - 2 ? data[row][col+2] : null,
-          top: row > 1 ? data[row-2][col] : null,
-          bottom: row < data.length - 2 ? data[row+2][col] : null
-        }
+        return this.getNeighboringEntitiesList(2)
     }
 
     /**
@@ -58,7 +51,7 @@ class Cell extends MazeEntity {
      * @returns {Array.<Cell>} List of neighboring cells that are accessible
      */
     getAccessibleNeighbors(){
-      return Object.values(this.getNeighbors()).filter((c)=>c&&this.canAccessCell(c))
+      return this.getNeighbors().filter((c)=>c&&this.canAccessCell(c))
     }
 
     /**
@@ -72,13 +65,7 @@ class Cell extends MazeEntity {
      * @returns {Object} Dictionary of walls surrounding this cell
      */
     getWalls() {
-        const data = this.maze.data;
-        return {
-            left: data[this.row][this.col-1],
-            right: data[this.row][this.col+1],
-            top: data[this.row-1][this.col],
-            bottom: data[this.row+1][this.col]
-        }
+        return this.getNeighboringEntitiesDict(1)
     }
 }
 
