@@ -16,11 +16,17 @@ class Cell extends MazeEntity {
      * @returns {Array.<Cell>} List of neighboring cells
      */
     getNeighbors() {
-
+        const data = this.maze.data, row = this.row, col = this.col;
+        return {
+          left: col > 1? data[row][col-2] : null,
+          right: col < data[0].length - 2 ? data[row][col+2] : null,
+          top: row > 1 ? data[row-2][col] : null,
+          bottom: row < data.length - 2 ? data[row+2][col] : null
+        }
     }
 
     /**
-     * @param {Cell} cell 
+     * @param {Cell} cell
      * @returns {boolean} Represents whether there is a removed wall between cells
      */
     canAccessCell(cell){
