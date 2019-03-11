@@ -1,0 +1,54 @@
+@bgColor: #333;
+@wallColor: #ddd;
+@wallWidth: 13%;
+
+body {
+    background-color: @bgColor;
+}
+
+#maze {
+    display: grid;
+    grid-gap: 0px;
+
+    background-color: @wallColor;
+
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+
+    margin: auto;
+
+    > .cell {
+        height: 100%;
+        width: 100%;
+        position: relative;
+
+        > .walls {
+            background-color: @bgColor;
+            &:hover {
+                background-color: lighten(@bgColor, 40%);
+            }
+
+            position: absolute;
+            top: @wallWidth;
+            left: @wallWidth;
+            bottom: @wallWidth;
+            right: @wallWidth;
+
+            &.open-left {
+                left: 0;
+            }
+            &.open-right {
+                right: 0;
+            }
+            &.open-top {
+                top: 0;
+            }
+            &.open-bottom {
+                bottom: 0;
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Mazer 3D</title>
+        <% if (isProduction) { %>
+        <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+        <% } %>
+    </head>
+    <body>
+        <div id="maze"></div>
+        <div id="templates" hidden>
+            <div class="cell">
+                <div class="walls"></div>
+            </div>
+        </div>
+    </body>
+</html>
