@@ -1,21 +1,37 @@
 import '../less/style.less';
 import Maze from './Maze.js';
 
-const mazeRows = 10;
-const mazeCols = 10;
+const nRows = 4;
+const nCols = 6;
 
 $(document).ready(() => {
-    setupView();
 
-    const maze = new Maze(mazeRows, mazeCols);
+
+    const maze = new Maze(nRows, nCols);
     const cells = maze.getCells();
     const lastCell = cells[cells.length-1];
-    console.log(lastCell.getWalls());
+    // console.log(lastCell.getWalls());
+    const neighs = lastCell.getNeighboringCells();
+    console.log(neighs)
+
+    // const cell1 = cells[8]
+    // const cell2 = cells[14]
+    // const cs = [cell1,cell2]
+    // console.log(cell1.isNeighboringCell(cell2))
+
+
+    setupView(maze);
+    Object.values(neighs).forEach((c)=>{
+        $(`#${c.row+'-'+c.col}`).css("background-color","blue")
+    })
 });
 
-function setupView() {
+function setupView(maze) {
     const maze$ = $('#maze');
     const templates$ = $('#templates');
+    const cells = maze.getCells()
+    const mazeCols = maze.cols;
+    const mazeRows = maze.rows;
 
     maze$.css({
         'grid-template-rows': `repeat(${mazeRows}, 1fr)`,
@@ -26,9 +42,9 @@ function setupView() {
 
     const cell$ = templates$.find('.cell');
 
-    for (let j = 0; j < mazeRows*mazeCols; j++) {
-        maze$.append(cell$.clone());
-    }
+    cells.forEach((cell)=>{
+      maze$.append(cell$.clone().attr('id', cell.row+'-'+cell.col));  //TODO; get rid of id
+    })
 
     const firstCell$ = maze$.find('.cell').first();
     const firstWall$ = firstCell$.find('.walls');

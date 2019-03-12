@@ -1,4 +1,5 @@
 import MazeEntity from './MazeEntity.js';
+import {WallState} from './Wall.js'
 
 class Cell extends MazeEntity {
     constructor(...args) {
@@ -15,23 +16,38 @@ class Cell extends MazeEntity {
     /**
      * @returns {Array.<Cell>} List of neighboring cells
      */
-    getNeighbors() {
-
+    getNeighboringCells() {
+        return this.getListOfNeighborsAtDist(2)
     }
 
     /**
-     * @param {Cell} cell 
+     * @param {Cell} cell
      * @returns {boolean} Represents whether there is a removed wall between cells
      */
     canAccessCell(cell){
+      return (
+          cell.visited==false
+          && this.isNeighboringCell(cell)
+          && this.getInterveningWall(cell).state === WallState.REMOVED
+      )
+    }
 
+    getInterveningWall(cell){
+      if(this.isNeighboringCell(cell)){
+        return this.maze.data[(this.row+cell.row)/2][(this.col+cell.col)/2]
+      }
+      return null;
+    }
+
+    isNeighboringCell(cell){
+      return this.getNeighboringCells().includes(cell);
     }
 
     /**
      * @returns {Array.<Cell>} List of neighboring cells that are accessible
      */
     getAccessibleNeighbors(){
-
+      return this.getNeighboringCells().filter((c)=>c&&this.canAccessCell(c))
     }
 
     /**
@@ -45,13 +61,7 @@ class Cell extends MazeEntity {
      * @returns {Object} Dictionary of walls surrounding this cell
      */
     getWalls() {
-        const data = this.maze.data;
-        return {
-            left: data[this.row][this.col-1],
-            right: data[this.row][this.col+1],
-            top: data[this.row-1][this.col],
-            bottom: data[this.row+1][this.col]
-        }
+        return this.getDictOfNeighborsAtDist(1)
     }
 }
 
