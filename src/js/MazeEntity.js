@@ -2,7 +2,7 @@ class MazeEntity {
     constructor(maze, row, col) {
         Object.assign(this, {maze, row, col});
     }
-    getNeighboringEntitiesDict(distance){
+    getDictOfNeighborsAtDist(distance){
       const data = this.maze.data, row = this.row, col = this.col;
       return {
         'left': col > (distance-1)? data[row][col-distance] : null,
@@ -11,8 +11,9 @@ class MazeEntity {
         'bottom': row < data.length - distance ? data[row+distance][col] : null
       }
     }
-    getNeighboringEntitiesList(distance){
-      return Object.values(this.getNeighboringEntitiesDict(distance))
+    getListOfNeighborsAtDist(distance){
+      return Object.values(this.getDictOfNeighborsAtDist(distance))
+        .filter((x)=>x!==null)
     }
 }
 

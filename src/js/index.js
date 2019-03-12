@@ -9,22 +9,20 @@ $(document).ready(() => {
 
     const maze = new Maze(nRows, nCols);
     const cells = maze.getCells();
-    const lastCell = cells[cells.length-3];
+    const lastCell = cells[cells.length-1];
     // console.log(lastCell.getWalls());
-    const neighs = lastCell.getAccessibleNeighbors();
+    const neighs = lastCell.getNeighboringCells();
     console.log(neighs)
 
-    // const cell1 = cells[7]
-    // const cell2 = cells[1]
-    // const cs = [cell1, cell2]
+    // const cell1 = cells[8]
+    // const cell2 = cells[14]
+    // const cs = [cell1,cell2]
+    // console.log(cell1.isNeighboringCell(cell2))
 
 
     setupView(maze);
     Object.values(neighs).forEach((c)=>{
-      if(c!==null){
         $(`#${c.row+'-'+c.col}`).css("background-color","blue")
-      }
-
     })
 });
 

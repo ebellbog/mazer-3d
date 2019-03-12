@@ -7,7 +7,7 @@ class Vertex extends MazeEntity {
     }
 
     getOutgoingWalls(){
-      return this.getNeighboringEntitiesList(1)
+      return this.getListOfNeighborsAtDist(1)
     }
 
     // The maximum number of outgoing walls a vertex can have in the REMOVED
