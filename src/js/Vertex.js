@@ -15,7 +15,7 @@ class Vertex extends MazeEntity {
     hasMaximumRemovedWalls(){
       return this.getOutgoingWalls()
         .filter((wall)=>wall.state==WallState.REMOVED)
-        .length < 3
+        .length >= 3
     }
 }
 

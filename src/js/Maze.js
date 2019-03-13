@@ -28,6 +28,10 @@ class Maze {
             return cells.concat(row.filter((entity) => entity instanceof Cell));
         }, []);
     }
+
+    generateMaze() {
+        this.getCells().forEach((cell) => cell.visit());
+    }
 }
 
 export default Maze;

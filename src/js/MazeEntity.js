@@ -2,6 +2,7 @@ class MazeEntity {
     constructor(maze, row, col) {
         Object.assign(this, {maze, row, col});
     }
+
     getDictOfNeighborsAtDist(distance){
       const data = this.maze.data, row = this.row, col = this.col;
       return {
@@ -11,6 +12,7 @@ class MazeEntity {
         'bottom': row < data.length - distance ? data[row+distance][col] : null
       }
     }
+
     getListOfNeighborsAtDist(distance){
       return Object.values(this.getDictOfNeighborsAtDist(distance))
         .filter((x)=>x!==null)
