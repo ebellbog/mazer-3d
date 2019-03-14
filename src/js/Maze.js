@@ -38,7 +38,7 @@ class Maze {
     }
 
     getVisitFunction(randomize) {
-        const cells = this.getCells() //.shuffle();
+        const cells = this.getCells();
         if (randomize) cells.shuffle();
 
         let index = 0;

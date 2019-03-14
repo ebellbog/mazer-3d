@@ -1,4 +1,4 @@
-import {getRndInteger} from './utils';
+import {randInt} from './utils';
 import MazeEntity from './MazeEntity.js';
 import {WallState} from './Wall.js'
 
@@ -6,7 +6,7 @@ class Group {
     constructor(cell) {
         this.accessibleUnvisitedCells = new Set([cell]);
         this.memberCells = [cell];
-        this.color = `rgb(${getRndInteger(0,255)}, ${getRndInteger(0,255)}, ${getRndInteger(0,255)})`;
+        this.color = `rgb(${randInt(0,255)}, ${randInt(0,255)}, ${randInt(0,255)})`;
     }
 
     mergeWithGroup(group) {
@@ -36,32 +36,32 @@ class Cell extends MazeEntity {
      * @returns {boolean} Represents whether there is a removed wall between cells
      */
 
-    canAccessCell(cell){
+    canAccessCell(cell) {
         return (
             this.isNeighboringCell(cell)
             && this.getInterveningWall(cell).state === WallState.REMOVED
         )
     }
 
-    getInterveningWall(cell){
+    getInterveningWall(cell) {
         if (this.isNeighboringCell(cell)) {
             return this.maze.data[(this.row + cell.row) / 2][(this.col + cell.col) / 2]
         }
         return null;
     }
 
-    isNeighboringCell(cell){
+    isNeighboringCell(cell) {
         return this.getNeighboringCells().includes(cell);
     }
 
     /**
      * @returns {Array.<Cell>} List of neighboring cells that are accessible
      */
-    getAccessibleNeighbors(){
+    getAccessibleNeighbors() {
         return this.getNeighboringCells().filter((c) => this.canAccessCell(c))
     }
 
-    getUniqueNeighboringGroups(onlyVisited){
+    getUniqueNeighboringGroups(onlyVisited) {
         let accessibleNeighbors = this.getAccessibleNeighbors()
         if (onlyVisited) accessibleNeighbors = accessibleNeighbors.filter((neighbor) => neighbor.visited)
 
@@ -70,52 +70,52 @@ class Cell extends MazeEntity {
         }, []);
     }
 
-    visit(){
+    visit() {
         // Figure out whether we need to delete at least one wall.
         let groups = this.getUniqueNeighboringGroups();
+
         // This cell no longer counts as an invisited cell
         groups.forEach((group)=> group.accessibleUnvisitedCells.delete(this))
+
         //Between the groups that are about to be merged, how many outlets are there? 
         const allUnvisitedCells = new Set();
-        groups.forEach((group)=>{
+        groups.forEach((group) => {
             group.accessibleUnvisitedCells.forEach((cell)=>{
                 allUnvisitedCells.add(cell)
             })
-        })
-        const total = allUnvisitedCells.size  //TODO: double check that we should not be double counting group scores
-        const minimumWallsToDelete = total===0? 1 : 0
+        });
+
+        const totalUnvisited = allUnvisitedCells.size;
+        const minimumWallsToDelete = totalUnvisited ? 0 : 1;
 
         // Actually remove some walls.
         const walls = Object.values(this.getWalls()).shuffle();
         const removableWalls = walls.filter((wall)=>wall.isRemovable())
-        const numberOfWallsToRemove = getRndInteger(minimumWallsToDelete, removableWalls.length) //is it possible for these to be switched
+        const numberOfWallsToRemove = randInt(minimumWallsToDelete, removableWalls.length);
 
         let removedWalls = 0;
         walls.forEach((wall)=>{
             if(wall.state==WallState.PENDING){
-                if(removableWalls.includes(wall) && removedWalls < numberOfWallsToRemove){
+                if (removableWalls.includes(wall) && removedWalls < numberOfWallsToRemove) {
                     wall.state = WallState.REMOVED;
-                    removedWalls+=1;
-                }
-                else{
+                    removedWalls++;
+                } else {
                     wall.state = WallState.CONFIRMED
                 }
             }
-        })
+        });
 
         // Update scores and merge groups
-        groups = this.getUniqueNeighboringGroups();
-
-        const allUnvisitedCells2 = new Set();
-        groups.forEach((group)=>{
-            group.accessibleUnvisitedCells.forEach((cell)=>{
-                allUnvisitedCells2.add(cell)
+        const newNeighbors = this.getUniqueNeighboringGroups();
+        const newAllUnvisited = new Set();
+        newNeighbors.forEach((group)=>{
+            group.accessibleUnvisitedCells.forEach((unvisitedCell) => {
+                newAllUnvisited.add(unvisitedCell);
             })
         })
 
         this.getUniqueNeighboringGroups(true).forEach((group) => this.group.mergeWithGroup(group));
-        this.group.accessibleUnvisitedCells = allUnvisitedCells2;
-
+        this.group.accessibleUnvisitedCells = newAllUnvisited;
 
         // Mark visited
         this.visited = true;

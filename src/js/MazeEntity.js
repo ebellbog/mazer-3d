@@ -14,8 +14,7 @@ class MazeEntity {
     }
 
     getListOfNeighborsAtDist(distance){
-      return Object.values(this.getDictOfNeighborsAtDist(distance))
-        .filter((x)=>x!==null)
+      return Object.values(this.getDictOfNeighborsAtDist(distance)).filter((x) => x !== null)
     }
 }
 

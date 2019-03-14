@@ -6,13 +6,13 @@ class Vertex extends MazeEntity {
         super(...args);
     }
 
-    getOutgoingWalls(){
+    getOutgoingWalls() {
       return this.getListOfNeighborsAtDist(1)
     }
 
     // The maximum number of outgoing walls a vertex can have in the REMOVED
     // state is 3.
-    hasMaximumRemovedWalls(){
+    hasMaximumRemovedWalls() {
       return this.getOutgoingWalls()
         .filter((wall)=>wall.state==WallState.REMOVED)
         .length >= 3

@@ -9,8 +9,8 @@ function initUtils() {
 }
 
 // min inclusive max inclusive
-function getRndInteger(min, max) {
+function randInt(min, max) {
   return Math.floor(Math.random() * (max + 1 - min) ) + min;
 }
 
-export {getRndInteger, initUtils};
+export {randInt, initUtils};

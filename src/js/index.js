@@ -1,31 +1,40 @@
 import '../less/style.less';
-import {initUtils, getRndInteger} from './utils.js';
+import {initUtils, randInt} from './utils.js';
 import Maze from './Maze.js';
 import Wall from './Wall.js'
 import {WallState} from './Wall.js'
 
-let nRows = 10;
-let nCols = 10;
+const SCREEN_SAVER_SPEED = 40; // Delay in milliseconds between cell visits.
+
+let nRows = 15;
+let nCols = 15;
+
+let screenSaverInterval;
+let cells$, cellTpl$;
+let maze$, mazeBg$;
 
 $(document).ready(() => {
     initUtils();
+
+    maze$ = $('#maze');
+    mazeBg$ = $('#maze-background');
+
+    const templates$ = $('#templates');
+    cellTpl$ = templates$.find('.cell');
+
     startScreenSaver();
 });
 
 function setupView(maze) {
-    const maze$ = $('#maze');
-
-    const templates$ = $('#templates');
-    const cell$ = templates$.find('.cell');
-
     const cells = maze.getCells()
     const mazeCols = maze.cols;
     const mazeRows = maze.rows;
 
     maze$.empty();
+    cells$ = [];
     cells.forEach((cell, idx) => {
-        const newCell$ = cell$.clone();
-        newCell$.attr('data-cell-idx', idx);
+        const newCell$ = cellTpl$.clone();
+        cells$.push(newCell$);
         maze$.append(newCell$);
     });
 
@@ -38,9 +47,6 @@ function setupView(maze) {
 }
 
 function updateView(maze) {
-    const maze$ = $('#maze');
-    const mazeBg$ = $('#maze-background');
-
     const cells = maze.getCells()
     const mazeCols = maze.cols;
     const mazeRows = maze.rows;
@@ -64,18 +70,19 @@ function updateView(maze) {
         'border-radius': mazePadding
     });
 }
+
 function renderMaze(maze) {
     const cells = maze.getCells();
 
     cells.forEach((cell, idx) => {
-        const cell$ = $(`.cell[data-cell-idx=${idx}]`);
+        const cell$ = cells$[idx];
         const wallDict = cell.getWalls();
 
         Object.keys(wallDict).forEach((key) => {
             if (wallDict[key].state === WallState.REMOVED){
                 cell$.addClass(`open-${key}`);
             }
-        })
+        });
 
         cell$.find('.label').html(cell.group.accessibleUnvisitedCells.size);
         if (cell.visited) {
@@ -97,25 +104,29 @@ function startMaze() {
 function startScreenSaver() {
     let maze = new Maze(nRows, nCols);
     let visitFunc = maze.getVisitFunction(false);
-    let roundsToSkip=1;
+    let roundsToSkip = 1;
 
-    setInterval(()=>{
-        if(roundsToSkip > 0){
-            roundsToSkip-=1;
+    screenSaverInterval = setInterval(()=>{
+        if (roundsToSkip > 0) {
+            roundsToSkip--;
             if (!roundsToSkip) setupView(maze);
         }
-        else{
+        else {
             const shouldRepeat = visitFunc();
             renderMaze(maze);
 
             if(!shouldRepeat){
-                nRows = getRndInteger(3, 20);
-                nCols = getRndInteger(3, 20);
+                nRows = randInt(3, 20);
+                nCols = randInt(3, 20);
 
                 maze = new Maze(nRows, nCols);
                 visitFunc = maze.getVisitFunction(false);
-                roundsToSkip=30;
+                roundsToSkip = 30;
             }
         }
-    }, 50);
+    }, SCREEN_SAVER_SPEED);
+}
+
+function stopScreenSaver() {
+    clearInterval(screenSaverInterval);
 }
