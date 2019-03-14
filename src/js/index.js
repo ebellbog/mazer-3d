@@ -1,18 +1,15 @@
 import '../less/style.less';
+import {initUtils, getRndInteger} from './utils.js';
 import Maze from './Maze.js';
 import Wall from './Wall.js'
 import {WallState} from './Wall.js'
 
-const nRows = 15;
-const nCols = 15;
+let nRows = 10;
+let nCols = 10;
 
 $(document).ready(() => {
-    const maze = new Maze(nRows, nCols);
-    setupView(maze);
-    window.onresize = () => updateView(maze);
-
-    maze.generateMaze();
-    renderMaze(maze);
+    initUtils();
+    startScreenSaver();
 });
 
 function setupView(maze) {
@@ -25,6 +22,7 @@ function setupView(maze) {
     const mazeCols = maze.cols;
     const mazeRows = maze.rows;
 
+    maze$.empty();
     cells.forEach((cell, idx) => {
         const newCell$ = cell$.clone();
         newCell$.attr('data-cell-idx', idx);
@@ -66,7 +64,6 @@ function updateView(maze) {
         'border-radius': mazePadding
     });
 }
-
 function renderMaze(maze) {
     const cells = maze.getCells();
 
@@ -80,7 +77,45 @@ function renderMaze(maze) {
             }
         })
 
-        cell$.find('.label').html(cell.group.score);
-        cell$.find('.walls').css('background-color', cell.group.color);
+        cell$.find('.label').html(cell.group.accessibleUnvisitedCells.size);
+        if (cell.visited) {
+            cell$.find('.walls').css('background-color', cell.group.color);
+        }
+        cell$.toggleClass('pending', !cell.visited);
     });
+}
+
+function startMaze() {
+    const maze = new Maze(nRows, nCols);
+    setupView(maze);
+    window.onresize = () => updateView(maze);
+
+    maze.generateMaze();
+    renderMaze(maze);
+}
+
+function startScreenSaver() {
+    let maze = new Maze(nRows, nCols);
+    let visitFunc = maze.getVisitFunction(false);
+    let roundsToSkip=1;
+
+    setInterval(()=>{
+        if(roundsToSkip > 0){
+            roundsToSkip-=1;
+            if (!roundsToSkip) setupView(maze);
+        }
+        else{
+            const shouldRepeat = visitFunc();
+            renderMaze(maze);
+
+            if(!shouldRepeat){
+                nRows = getRndInteger(3, 20);
+                nCols = getRndInteger(3, 20);
+
+                maze = new Maze(nRows, nCols);
+                visitFunc = maze.getVisitFunction(false);
+                roundsToSkip=30;
+            }
+        }
+    }, 50);
 }

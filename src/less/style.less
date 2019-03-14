@@ -47,12 +47,18 @@ body {
             right: @wallWidth;
         }
 
-        &.pending > .walls {
-            top: @wallWidth/10;
-            left: @wallWidth/10;
-            bottom: @wallWidth/10;
-            right: @wallWidth/10;
+        &.pending {
+            > .walls {
+                top: @wallWidth/10;
+                left: @wallWidth/10;
+                bottom: @wallWidth/10;
+                right: @wallWidth/10;
+            }
+            > .vertex {
+                visibility: hidden;
+            }
         }
+
         &.open-left > .walls {
             left: -1px;
         }
@@ -73,6 +79,7 @@ body {
         }
 
         > .label {
+            display: none; // display for debug purposes
             font-family: Courier;
             font-size: 18px;
             color: white;

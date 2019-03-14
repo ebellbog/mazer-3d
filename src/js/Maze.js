@@ -1,3 +1,4 @@
+import './utils.js';
 import Cell from './Cell.js';
 import Wall from './Wall.js';
 import Vertex from './Vertex.js';
@@ -29,8 +30,26 @@ class Maze {
         }, []);
     }
 
-    generateMaze() {
-        this.getCells().forEach((cell) => cell.visit());
+    generateMaze(randomize) {
+        const cells = this.getCells();
+        if (randomize) cells.shuffle();
+
+        cells.forEach((cell) => cell.visit());
+    }
+
+    getVisitFunction(randomize) {
+        const cells = this.getCells() //.shuffle();
+        if (randomize) cells.shuffle();
+
+        let index = 0;
+        return function(){ 
+            if(index < cells.length){
+                const cell = cells[index];
+                cell.visit();
+                index+=1;
+            }
+            return index ===cells.length ? false : true;
+        }
     }
 }
 
