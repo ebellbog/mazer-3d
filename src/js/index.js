@@ -58,26 +58,12 @@ function updateView(maze) {
 
     mazeBg$.css('padding', mazePadding);
 
-    $('.corner').css({
+    $('.vertex').css({
+        top: -mazePadding,
+        right: -mazePadding,
         height: mazePadding*2,
         width: mazePadding*2,
         'border-radius': mazePadding
-    });
-    $('.corner.top-left').css({
-        top: -mazePadding,
-        left: -mazePadding
-    });
-    $('.corner.top-right').css({
-        top: -mazePadding,
-        right: -mazePadding
-    });
-    $('.corner.bottom-left').css({
-        bottom: -mazePadding,
-        left: -mazePadding
-    });
-    $('.corner.bottom-right').css({
-        bottom: -mazePadding,
-        right: -mazePadding
     });
 }
 
@@ -93,5 +79,8 @@ function renderMaze(maze) {
                 cell$.addClass(`open-${key}`);
             }
         })
+
+        cell$.find('.label').html(cell.group.score);
+        cell$.find('.walls').css('background-color', cell.group.color);
     });
 }

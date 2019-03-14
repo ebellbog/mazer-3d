@@ -5,6 +5,7 @@ class Group {
     constructor(cell) {
         this.accessibleUnvisitedCells = new Set([cell]);
         this.memberCells = [cell];
+        this.color = `rgb(${getRndInteger(0,255)}, ${getRndInteger(0,255)}, ${getRndInteger(0,255)})`;
     }
 
     // TODO: consider moving score management into this method

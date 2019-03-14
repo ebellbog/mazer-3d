@@ -66,9 +66,19 @@ body {
             bottom: -1px;
         }
 
-        .corner {
+        > .vertex {
             position: absolute;
             background-color: @wallColor;
+            z-index: 1;
+        }
+
+        > .label {
+            font-family: Courier;
+            font-size: 18px;
+            color: white;
+            position: absolute;
+            top: 30%;
+            left: 40%;
         }
     }
 }
