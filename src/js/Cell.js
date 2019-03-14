@@ -3,7 +3,7 @@ import {WallState} from './Wall.js'
 
 class Group {
     constructor(cell) {
-        this.score = 1;
+        this.accessibleUnvisitedCells = new Set([cell]);
         this.memberCells = [cell];
     }
 
@@ -76,10 +76,20 @@ class Cell extends MazeEntity {
     }
 
     visit(){
+        // console.log(`\n\nVisiting cell at R${this.row}, C${this.col}`)
+
         // Figure out whether we need to delete at least one wall.
         let groups = this.getUniqueNeighboringGroups();
-        groups.forEach((group)=> group.score-=1)
-        const total = groups.reduce((acc,group)=> acc+group.score, 0) //TODO: double check that we should not be double counting group scores
+        // This cell no longer counts as an invisited cell
+        groups.forEach((group)=> group.accessibleUnvisitedCells.delete(this))
+        //Between the groups that are about to be merged, how many outlets are there? 
+        const allUnvisitedCells = new Set();
+        groups.forEach((group)=>{
+            group.accessibleUnvisitedCells.forEach((cell)=>{
+                allUnvisitedCells.add(cell)
+            })
+        })
+        const total = allUnvisitedCells.size  //TODO: double check that we should not be double counting group scores
         const minimumWallsToDelete = total===0? 1 : 0
 
         // Actually remove some walls.
@@ -90,7 +100,7 @@ class Cell extends MazeEntity {
         // console.log('minimumWallsToDelete', minimumWallsToDelete)
         // console.log('maximumWallsToDelete', removableWalls.length)
         // console.log('numberOfWallsToRemove', numberOfWallsToRemove)
-        if (removableWalls.length < minimumWallsToDelete) console.log(`\n\n\n\nVisiting cell at R${this.row}, C${this.col}`)
+        // if (removableWalls.length < minimumWallsToDelete) console.log(`\n\n\n\nVisiting cell at R${this.row}, C${this.col}`)
         let removedWalls = 0;
         walls.forEach((wall)=>{
             if(wall.state==WallState.PENDING){
@@ -106,10 +116,19 @@ class Cell extends MazeEntity {
 
         // Update scores and merge groups
         groups = this.getUniqueNeighboringGroups();
-        const score = groups.reduce((acc,group)=> acc+group.score, 0);
+        // console.log('groups')
+        // groups.forEach((g)=> console.log('--cells', g.memberCells, 'score', g.score))
+        // const score = groups.reduce((acc,group)=> acc+group.score, 0);
+        const allUnvisitedCells2 = new Set();
+        groups.forEach((group)=>{
+            group.accessibleUnvisitedCells.forEach((cell)=>{
+                allUnvisitedCells2.add(cell)
+            })
+        })
 
         this.getUniqueNeighboringGroups(true).forEach((group) => this.group.mergeWithGroup(group));
-        this.group.score = score;
+        this.group.accessibleUnvisitedCells = allUnvisitedCells2;
+
 
         // Mark visited
         this.visited = true;
