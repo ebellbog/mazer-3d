@@ -86,17 +86,26 @@ class Cell extends MazeEntity {
         });
 
         const totalUnvisited = allUnvisitedCells.size;
-        const minimumWallsToDelete = totalUnvisited ? 0 : 1;
+        const minimumWallsToRemove = totalUnvisited ? 0 : 1;
 
         // Actually remove some walls.
         const walls = Object.values(this.getWalls()).shuffle();
+
+        // Move walls that shouldn't be removed later in list, to decrease chance of removal.
+        walls.sort((a, b) => a.shouldNotBeRemoved() && !b.shouldNotBeRemoved() ? 1 : -1);
+
         const removableWalls = walls.filter((wall)=>wall.isRemovable())
-        const numberOfWallsToRemove = randInt(minimumWallsToDelete, removableWalls.length);
+        const numberOfWallsToRemove = randInt(minimumWallsToRemove, removableWalls.length);
 
         let removedWalls = 0;
         walls.forEach((wall)=>{
             if(wall.state==WallState.PENDING){
                 if (removableWalls.includes(wall) && removedWalls < numberOfWallsToRemove) {
+                    if (wall.shouldNotBeRemoved() && removedWalls > minimumWallsToRemove) {
+                        wall.state = WallState.CONFIRMED;
+                        return;
+                    }
+
                     wall.state = WallState.REMOVED;
                     removedWalls++;
                 } else {

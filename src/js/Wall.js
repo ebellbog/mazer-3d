@@ -34,6 +34,14 @@ class Wall extends MazeEntity {
         }
         return true;
     }
+
+    shouldNotBeRemoved() {
+        const endpoints = this.getVertices();
+        for (let i = 0; i < 2; i++) {
+            if (endpoints[i].supportsLoneWall()) return true;
+        }
+        return false;
+    }
 }
 
 export {WallState}

@@ -51,9 +51,12 @@ function updateView(maze) {
     const mazeCols = maze.cols;
     const mazeRows = maze.rows;
 
+    const mazeAspect = mazeRows / mazeCols;
+    const screenAspect = window.innerHeight / window.innerWidth;
+
     mazeBg$.css({
-        width: mazeCols > mazeRows ? '80vw' : `${80 * mazeCols / mazeRows}vh` ,
-        height: mazeRows >= mazeCols ? '80vh' : `${80 * mazeRows / mazeCols}vw`
+        width: screenAspect > mazeAspect ? '80vw' : `${80 * mazeCols / mazeRows}vh` ,
+        height: mazeAspect >= screenAspect ? '80vh' : `${80 * mazeRows / mazeCols}vw`
     });
 
     const defaultCell$ = maze$.find('.cell:not(.open-left):not(.open-right)').first();
@@ -71,7 +74,7 @@ function updateView(maze) {
     });
 }
 
-function renderMaze(maze) {
+function renderMaze(maze, withColor) {
     const cells = maze.getCells();
 
     cells.forEach((cell, idx) => {
@@ -85,7 +88,7 @@ function renderMaze(maze) {
         });
 
         cell$.find('.label').html(cell.group.accessibleUnvisitedCells.size);
-        if (cell.visited) {
+        if (withColor && cell.visited) {
             cell$.find('.walls').css('background-color', cell.group.color);
         }
         cell$.toggleClass('pending', !cell.visited);
@@ -98,11 +101,13 @@ function startMaze() {
     window.onresize = () => updateView(maze);
 
     maze.generateMaze();
-    renderMaze(maze);
+    renderMaze(maze, false);
 }
 
 function startScreenSaver() {
     let maze = new Maze(nRows, nCols);
+    window.onresize = () => updateView(maze);
+
     let visitFunc = maze.getVisitFunction(false);
     let roundsToSkip = 1;
 
@@ -113,7 +118,7 @@ function startScreenSaver() {
         }
         else {
             const shouldRepeat = visitFunc();
-            renderMaze(maze);
+            renderMaze(maze, true);
 
             if(!shouldRepeat){
                 nRows = randInt(3, 20);
