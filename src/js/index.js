@@ -5,6 +5,8 @@ import Wall from './Wall.js'
 import {WallState} from './Wall.js'
 
 const SCREEN_SAVER_SPEED = 40; // Delay in milliseconds between cell visits.
+const MIN_SIZE = 6;
+const MAX_SIZE = 30;
 
 let nRows = 15;
 let nCols = 15;
@@ -121,8 +123,8 @@ function startScreenSaver() {
             renderMaze(maze, true);
 
             if(!shouldRepeat){
-                nRows = randInt(3, 20);
-                nCols = randInt(3, 20);
+                nRows = randInt(MIN_SIZE, MAX_SIZE);
+                nCols = randInt(MIN_SIZE, MAX_SIZE);
 
                 maze = new Maze(nRows, nCols);
                 visitFunc = maze.getVisitFunction(false);

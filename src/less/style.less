@@ -12,7 +12,7 @@ body {
     top: 50%;
     transform: translate(-50%, -50%);
 
-    background-image: linear-gradient(45deg, cyan, purple);
+    background-image: linear-gradient(45deg, cyan, violet);
     border-radius: 12px;
     overflow: hidden;
 }
@@ -50,10 +50,10 @@ body {
 
         &.pending {
             > .walls {
-                top: @wallWidth/10;
-                left: @wallWidth/10;
-                bottom: @wallWidth/10;
-                right: @wallWidth/10;
+                top: @wallWidth/6;
+                left: @wallWidth/6;
+                bottom: @wallWidth/6;
+                right: @wallWidth/6;
             }
             > .vertex {
                 visibility: hidden;
