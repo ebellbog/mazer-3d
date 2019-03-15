@@ -19,7 +19,8 @@ class Vertex extends MazeEntity {
     }
 
     // Call this function on both endpoints, when considering whether to remove a PENDING wall.
-    supportsLoneWall() {
+    // It is a recommendation, rather than a hard rule.
+    shouldNotRemoveWalls() {
         const walls = this.getOutgoingWalls();
         const confirmedWalls = walls.filter((wall) => wall.state === WallState.CONFIRMED);
         const pendingWalls = walls.filter((wall) => wall.state === WallState.PENDING);
@@ -34,6 +35,7 @@ class Vertex extends MazeEntity {
         const wall = confirmedWalls[0];
         const vertices = wall.getVertices();
 
+        // Get vertex at other end of wall.
         for (let i = 0; i < 2; i++) {
             const vertex = vertices[i];
             if (vertex === this) continue;
