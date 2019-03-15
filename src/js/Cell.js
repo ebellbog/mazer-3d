@@ -70,25 +70,14 @@ class Cell extends MazeEntity {
         }, []);
     }
 
-    visit() {
-        // Figure out whether we need to delete at least one wall.
-        let groups = this.getUniqueNeighboringGroups();
+    /**
+     * @returns {Object} Dictionary of walls surrounding this cell
+     */
+    getWalls() {
+        return this.getDictOfNeighborsAtDist(1)
+    }
 
-        // This cell no longer counts as an invisited cell
-        groups.forEach((group)=> group.accessibleUnvisitedCells.delete(this))
-
-        //Between the groups that are about to be merged, how many outlets are there? 
-        const allUnvisitedCells = new Set();
-        groups.forEach((group) => {
-            group.accessibleUnvisitedCells.forEach((cell)=>{
-                allUnvisitedCells.add(cell)
-            })
-        });
-
-        const totalUnvisited = allUnvisitedCells.size;
-        const minimumWallsToRemove = totalUnvisited ? 0 : 1;
-
-        // Actually remove some walls.
+    removeAtLeastNWalls(minimumWallsToRemove){
         const walls = Object.values(this.getWalls()).shuffle();
 
         // Move walls that shouldn't be removed later in list, to decrease chance of removal.
@@ -105,7 +94,6 @@ class Cell extends MazeEntity {
                         wall.state = WallState.CONFIRMED;
                         return;
                     }
-
                     wall.state = WallState.REMOVED;
                     removedWalls++;
                 } else {
@@ -113,29 +101,54 @@ class Cell extends MazeEntity {
                 }
             }
         });
+    }
 
-        // Update scores and merge groups
-        const newNeighbors = this.getUniqueNeighboringGroups();
-        const newAllUnvisited = new Set();
-        newNeighbors.forEach((group)=>{
-            group.accessibleUnvisitedCells.forEach((unvisitedCell) => {
-                newAllUnvisited.add(unvisitedCell);
-            })
-        })
+    visit() {
+        // Get the groups that will be merged with this cell. For each one,
+        // this cell no longer counts as an "accessible unvisited cell", so
+        // delete it from their records.
+        let neighboringGroups = this.getUniqueNeighboringGroups();
+        neighboringGroups.forEach(
+                (group)=> group.accessibleUnvisitedCells.delete(this)
+        )
 
-        this.getUniqueNeighboringGroups(true).forEach((group) => this.group.mergeWithGroup(group));
+        // If the merged group which includes this cell already has access to
+        // a least one unvisited cell, then we don't need to remove any walls.
+        // If it does NOT have access to at least one unvisited cell, we need
+        // to maintain access by deleting at least one wall.
+        const minWallsToRemove =
+            getAllAccessibleUnvisitedCells(neighboringGroups).size ? 0 : 1;
+
+        // Remove at least the specified number of walls.
+        this.removeAtLeastNWalls(minWallsToRemove)
+
+        // Now that we've removed some walls, re-calculate the neighboring
+        // groups to include those that we have just gained access to.
+        // Once we merge, we'll want the newly merged group to count, among its
+        // "accessible unvisited cells", anything accessible via these neighboring
+        // groups
+        neighboringGroups = this.getUniqueNeighboringGroups();
+        const newAllUnvisited = getAllAccessibleUnvisitedCells(neighboringGroups)
+
+        // Perform the merge & update the "accessible unvisited cells"
+        this.getUniqueNeighboringGroups(true)
+            .forEach((group) => this.group.mergeWithGroup(group));
         this.group.accessibleUnvisitedCells = newAllUnvisited;
 
-        // Mark visited
+        // Mark this cell as visited
         this.visited = true;
     }
 
-    /**
-     * @returns {Object} Dictionary of walls surrounding this cell
-     */
-    getWalls() {
-        return this.getDictOfNeighborsAtDist(1)
-    }
+}
+
+function getAllAccessibleUnvisitedCells(groups){
+    const allUnvisitedCells = new Set();
+    groups.forEach((group) => {
+        group.accessibleUnvisitedCells.forEach((cell)=>{
+            allUnvisitedCells.add(cell)
+        })
+    });
+    return allUnvisitedCells;
 }
 
 export default Cell;
