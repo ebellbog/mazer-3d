@@ -8,8 +8,8 @@ const SCREEN_SAVER_SPEED = 40; // Delay in milliseconds between cell visits.
 const MIN_SIZE = 6;
 const MAX_SIZE = 30;
 
-let nRows = 15;
-let nCols = 15;
+let nRows = 20;
+let nCols = 20;
 
 let screenSaverInterval;
 let cells$, cellTpl$;
@@ -24,7 +24,7 @@ $(document).ready(() => {
     const templates$ = $('#templates');
     cellTpl$ = templates$.find('.cell');
 
-    startScreenSaver();
+    startMaze();
 });
 
 function setupView(maze) {
@@ -36,6 +36,8 @@ function setupView(maze) {
     cells$ = [];
     cells.forEach((cell, idx) => {
         const newCell$ = cellTpl$.clone();
+        newCell$.attr('id', idx);
+
         cells$.push(newCell$);
         maze$.append(newCell$);
     });
@@ -61,11 +63,26 @@ function updateView(maze) {
         height: mazeAspect >= screenAspect ? '80vh' : `${80 * mazeRows / mazeCols}vw`
     });
 
-    const defaultCell$ = maze$.find('.cell:not(.open-left):not(.open-right)').first();
+    const defaultCell$ = maze$.find('.cell').first();
+
+    // If cell has open any walls, remove classes before calculating padding.
+    const classes = defaultCell$.attr('class');
+    const removeClasses = classes.split(' ').length > 1;
+    if (removeClasses) {
+        defaultCell$.attr('class', 'cell');
+    }
+
     const defaultWall$ = defaultCell$.find('.walls');
     const mazePadding = (defaultCell$.width()-defaultWall$.width())/2;
 
-    mazeBg$.css('padding', mazePadding);
+    if (removeClasses) {
+        defaultCell$.attr('class', classes);
+    }
+
+    mazeBg$.css({
+        padding: mazePadding,
+        'border-radius': mazePadding * 1.5
+    });
 
     $('.vertex').css({
         top: -mazePadding,
@@ -89,10 +106,9 @@ function renderMaze(maze, withColor) {
             }
         });
 
-        cell$.find('.label').html(cell.group.accessibleUnvisitedCells.size);
-        if (withColor && cell.visited) {
-            cell$.find('.walls').css('background-color', cell.group.color);
-        }
+        const cellColor = (withColor && cell.visited) ? (cell.color || cell.group.color) : '';
+        cell$.find('.walls').css('background-color', cellColor);
+
         cell$.toggleClass('pending', !cell.visited);
     });
 }
@@ -104,6 +120,21 @@ function startMaze() {
 
     maze.generateMaze();
     renderMaze(maze, false);
+
+    $('.cell').click((e) => {
+        e.stopPropagation();
+
+        const cell$ = $(e.currentTarget);
+        maze.colorByDistanceFromCell(cell$.attr('id'));
+
+        mazeBg$.addClass('highlight-foreground');
+        renderMaze(maze, true);
+    });
+
+    $('body').click(() => {
+        mazeBg$.removeClass('highlight-foreground');
+        renderMaze(maze, false);
+    });
 }
 
 function startScreenSaver() {

@@ -51,6 +51,42 @@ class Maze {
             return index ===cells.length ? false : true;
         }
     }
+
+    /**
+     * Calculate distance of all maze cells from cell at given index,
+     * then use color to visualize distance.
+     *
+     * @param {number} cellIdx - Index of selected start cell.
+     */
+    colorByDistanceFromCell(cellIdx) {
+        const cells = this.getCells();
+        cells.forEach((cell) => cell.distance = null);
+
+        const startCell = cells[cellIdx];
+        startCell.distance = 0;
+
+        let maxDist = 0;
+        let frontierCells = [startCell];
+
+        while (frontierCells.length) {
+            const newFrontier = [];
+            frontierCells.forEach((cell) => {
+                const accessibleNeighbors = cell.getAccessibleNeighbors();
+                const unvisitedAccessible = accessibleNeighbors.filter((neighbor) => neighbor.distance === null);
+                unvisitedAccessible.forEach((unvisited) => {
+                    unvisited.distance = cell.distance + 1;
+                    maxDist = Math.max(maxDist, unvisited.distance);
+                    newFrontier.push(unvisited);
+                });
+            });
+            frontierCells = newFrontier;
+        }
+
+        // Set hue by normalized distance (i.e. fraction of max dist).
+        cells.forEach((cell) => {
+            cell.color = `hsl(${300 * cell.distance / maxDist}, 100%, 40%)`;
+        });
+    }
 }
 
 export default Maze;
