@@ -51,6 +51,84 @@ class Maze {
             return index ===cells.length ? false : true;
         }
     }
+
+    /**
+     * Generic implementation of breadth-first search. Returns nothing, but exposes
+     * customizable functionality via callback function.
+     *
+     * @param {Cell} startCell - Cell to begin searching outwards from.
+     * @param {Function} callback - Takes parent Cell, followed by its child Cell.
+     */
+    breadthFirstSearch(startCell, callback) {
+        const distanceDict = {};
+        const visitedCells = new Set([startCell]);
+
+        let frontierCells = [startCell];
+
+        while (frontierCells.length) {
+            const newFrontier = [];
+            frontierCells.forEach((cell) => {
+                const accessibleNeighbors = cell.getAccessibleNeighbors();
+                const unvisitedAccessible = accessibleNeighbors.filter((neighbor) => !visitedCells.has(neighbor));
+
+                unvisitedAccessible.forEach((unvisited) => {
+                    callback(cell, unvisited)
+                    newFrontier.push(unvisited);
+                    visitedCells.add(unvisited);
+                });
+            });
+            frontierCells = newFrontier;
+        }
+    }
+
+     /**
+     * Calculate distance of all maze cells from cell at given index,
+     * then use color to visualize distance.
+     *
+     * @param {number} startIdx - Index of selected start cell.
+     * @returns {Object.<Cell, number>} Dictionary of distances from start cell.
+     */
+    getDistanceDict(startIdx){
+        const startCell = this.getCells()[startIdx];
+        const distanceDict = {}
+        distanceDict[startCell] = 0;
+
+        this.breadthFirstSearch(startCell, (parent, child)=>{
+            distanceDict[child] = distanceDict[parent] + 1;
+        });
+
+        return distanceDict;
+    }
+
+    /**
+     * Uses breadth-first search to find the shortest path between two cells.
+     *
+     * @param {number} startIdx - Index of start cell.
+     * @param {number} endIdx - Index of end cell.
+     * @returns {Array} List of cells in shortest path (including start and end cell).
+     */
+    getShortestPathData(startIdx, endIdx){
+        const cells = this.getCells();
+        const startCell = cells[startIdx];
+        const endCell = cells[endIdx];
+
+        const previousDict = {}
+        previousDict[startCell] = null;
+
+        this.breadthFirstSearch(startCell, (parent, child) => {
+            previousDict[child] = parent;
+        });
+
+        const path = [];
+
+        let prevCell = endCell;
+        while (prevCell !== null) {
+            path.push(prevCell)
+            prevCell = previousDict[prevCell];
+        }
+
+        return path;
+    }
 }
 
 export default Maze;
