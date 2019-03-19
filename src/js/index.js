@@ -8,12 +8,20 @@ const SCREEN_SAVER_SPEED = 40; // Delay in milliseconds between cell visits.
 const MIN_SIZE = 6;
 const MAX_SIZE = 30;
 
-let nRows = 20;
-let nCols = 20;
+const InteractionMode = {
+    SHORTEST_PATH: 'SHORTEST_PATH',
+    DISTANCE_MAP: 'DISTANCE_MAP',
+    SCREEN_SAVER: 'SCREEN_SAVER'
+};
 
+let nRows = 40;
+let nCols = 40;
+
+let currentMode;
 let screenSaverInterval;
 let cells$, cellTpl$;
 let maze$, mazeBg$;
+let maze;
 
 $(document).ready(() => {
     initUtils();
@@ -21,13 +29,61 @@ $(document).ready(() => {
     maze$ = $('#maze');
     mazeBg$ = $('#maze-background');
 
+    hookEvents();
+
     const templates$ = $('#templates');
     cellTpl$ = templates$.find('.cell');
 
     startMaze();
 });
 
-function setupView(maze) {
+function hookEvents() {
+    window.onresize = () => updateView(maze);
+
+    maze$.on('mouseover', '.cell', (e) => {
+        e.stopPropagation();
+
+        const cell$ = $(e.currentTarget);
+
+        if (currentMode === InteractionMode.SCREEN_SAVER) {
+            return;
+        }
+        else if (currentMode === InteractionMode.SHORTEST_PATH) {
+            const cells = maze.getCells();
+            cells.forEach(cell => cell.color = 'black');
+
+            const pathData = maze.getShortestPathData(0, cell$.attr('id'));
+            pathData.forEach((cell) => cell.color = 'tomato');
+
+        } else if (currentMode === InteractionMode.DISTANCE_MAP) {
+            const distanceDict = maze.getDistanceDict(cell$.attr('id'));
+            const maxDist = Object.values(distanceDict).sort((a,b)=> parseInt(a) > parseInt(b)? -1 : 1)[0];
+
+            // Set hue by normalized distance (i.e. fraction of max dist).
+            maze.getCells().forEach((cell) => {
+                cell.color = `hsl(${300 * distanceDict[cell] / maxDist}, 100%, 40%)`;
+            });
+        }
+
+        mazeBg$.addClass('highlight-foreground');
+        renderMaze(true);
+    });
+
+    $('body').on('mouseover', () => {
+        if (currentMode === InteractionMode.SCREEN_SAVER) return;
+
+        mazeBg$.removeClass('highlight-foreground');
+        renderMaze(false);
+    });
+
+    $(document).keydown((e) => {
+        if (e.which === 32) {
+            currentMode = currentMode === InteractionMode.DISTANCE_MAP ? InteractionMode.SHORTEST_PATH : InteractionMode.DISTANCE_MAP;
+        }
+    });
+}
+
+function setupView() {
     const cells = maze.getCells()
     const mazeCols = maze.cols;
     const mazeRows = maze.rows;
@@ -47,10 +103,10 @@ function setupView(maze) {
         'grid-template-columns': `repeat(${mazeCols}, 1fr)`
     });
 
-    updateView(maze);
+    updateView();
 }
 
-function updateView(maze) {
+function updateView() {
     const cells = maze.getCells()
     const mazeCols = maze.cols;
     const mazeRows = maze.rows;
@@ -93,7 +149,7 @@ function updateView(maze) {
     });
 }
 
-function renderMaze(maze, withColor) {
+function renderMaze(withColor) {
     const cells = maze.getCells();
 
     cells.forEach((cell, idx) => {
@@ -114,32 +170,22 @@ function renderMaze(maze, withColor) {
 }
 
 function startMaze() {
-    const maze = new Maze(nRows, nCols);
-    setupView(maze);
-    window.onresize = () => updateView(maze);
+    currentMode = InteractionMode.DISTANCE_MAP;
+
+    maze = new Maze(nRows, nCols);
+    setupView();
 
     maze.generateMaze();
-    renderMaze(maze, false);
-
-    $('.cell').click((e) => {
-        e.stopPropagation();
-
-        const cell$ = $(e.currentTarget);
-        maze.colorByDistanceFromCell(cell$.attr('id'));
-
-        mazeBg$.addClass('highlight-foreground');
-        renderMaze(maze, true);
-    });
-
-    $('body').click(() => {
-        mazeBg$.removeClass('highlight-foreground');
-        renderMaze(maze, false);
-    });
+    renderMaze(false);
 }
 
 function startScreenSaver() {
-    let maze = new Maze(nRows, nCols);
-    window.onresize = () => updateView(maze);
+    currentMode = InteractionMode.SCREEN_SAVER;
+
+    nRows = randInt(MIN_SIZE, MAX_SIZE);
+    nCols = randInt(MIN_SIZE, MAX_SIZE);
+
+    maze = new Maze(nRows, nCols);
 
     let visitFunc = maze.getVisitFunction(false);
     let roundsToSkip = 1;
@@ -151,7 +197,7 @@ function startScreenSaver() {
         }
         else {
             const shouldRepeat = visitFunc();
-            renderMaze(maze, true);
+            renderMaze(true);
 
             if(!shouldRepeat){
                 nRows = randInt(MIN_SIZE, MAX_SIZE);
