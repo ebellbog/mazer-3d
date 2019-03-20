@@ -14,203 +14,205 @@ const InteractionMode = {
     SCREEN_SAVER: 'SCREEN_SAVER'
 };
 
-let nRows = 40;
-let nCols = 40;
-
-let currentMode;
-let screenSaverInterval;
-let cells$, cellTpl$;
-let maze$, mazeBg$;
-let maze;
+let DemoPage;
 
 $(document).ready(() => {
     initUtils();
-
-    maze$ = $('#maze');
-    mazeBg$ = $('#maze-background');
-
-    hookEvents();
-
-    const templates$ = $('#templates');
-    cellTpl$ = templates$.find('.cell');
-
-    startMaze();
+    DemoPage = new MazeDemoPage();
+    DemoPage.startMaze();
 });
 
-function hookEvents() {
-    window.onresize = () => updateView(maze);
+class MazeDemoPage {
+    constructor() {
+        this.nRows = 40;
+        this.nCols = 40;
 
-    maze$.on('mouseover', '.cell', (e) => {
-        e.stopPropagation();
+        this.maze = null;
 
-        const cell$ = $(e.currentTarget);
+        this.currentMode = null;
+        this.screenSaverInterval = null;
 
-        if (currentMode === InteractionMode.SCREEN_SAVER) {
-            return;
-        }
-        else if (currentMode === InteractionMode.SHORTEST_PATH) {
-            const cells = maze.getCells();
-            cells.forEach(cell => cell.color = 'black');
+        this.maze$ = $('#maze');
+        this.mazeBg$ = $('#maze-background');
 
-            const pathData = maze.getShortestPathData(0, cell$.attr('id'));
-            pathData.forEach((cell) => cell.color = 'tomato');
+        const templates$ = $('#templates');
+        this.cellTpl$ = templates$.find('.cell');
+        this.cells$ = [];
 
-        } else if (currentMode === InteractionMode.DISTANCE_MAP) {
-            const distanceDict = maze.getDistanceDict(cell$.attr('id'));
-            const maxDist = Object.values(distanceDict).sort((a,b)=> parseInt(a) > parseInt(b)? -1 : 1)[0];
-
-            // Set hue by normalized distance (i.e. fraction of max dist).
-            maze.getCells().forEach((cell) => {
-                cell.color = `hsl(${300 * distanceDict[cell] / maxDist}, 100%, 40%)`;
-            });
-        }
-
-        mazeBg$.addClass('highlight-foreground');
-        renderMaze(true);
-    });
-
-    $('body').on('mouseover', () => {
-        if (currentMode === InteractionMode.SCREEN_SAVER) return;
-
-        mazeBg$.removeClass('highlight-foreground');
-        renderMaze(false);
-    });
-
-    $(document).keydown((e) => {
-        if (e.which === 32) {
-            currentMode = currentMode === InteractionMode.DISTANCE_MAP ? InteractionMode.SHORTEST_PATH : InteractionMode.DISTANCE_MAP;
-        }
-    });
-}
-
-function setupView() {
-    const cells = maze.getCells()
-    const mazeCols = maze.cols;
-    const mazeRows = maze.rows;
-
-    maze$.empty();
-    cells$ = [];
-    cells.forEach((cell, idx) => {
-        const newCell$ = cellTpl$.clone();
-        newCell$.attr('id', idx);
-
-        cells$.push(newCell$);
-        maze$.append(newCell$);
-    });
-
-    maze$.css({
-        'grid-template-rows': `repeat(${mazeRows}, 1fr)`,
-        'grid-template-columns': `repeat(${mazeCols}, 1fr)`
-    });
-
-    updateView();
-}
-
-function updateView() {
-    const cells = maze.getCells()
-    const mazeCols = maze.cols;
-    const mazeRows = maze.rows;
-
-    const mazeAspect = mazeRows / mazeCols;
-    const screenAspect = window.innerHeight / window.innerWidth;
-
-    mazeBg$.css({
-        width: screenAspect > mazeAspect ? '80vw' : `${80 * mazeCols / mazeRows}vh` ,
-        height: mazeAspect >= screenAspect ? '80vh' : `${80 * mazeRows / mazeCols}vw`
-    });
-
-    const defaultCell$ = maze$.find('.cell').first();
-
-    // If cell has open any walls, remove classes before calculating padding.
-    const classes = defaultCell$.attr('class');
-    const removeClasses = classes.split(' ').length > 1;
-    if (removeClasses) {
-        defaultCell$.attr('class', 'cell');
+        this.hookEvents();
     }
 
-    const defaultWall$ = defaultCell$.find('.walls');
-    const mazePadding = (defaultCell$.width()-defaultWall$.width())/2;
+    hookEvents() {
+        window.onresize = () => this.updateView();
 
-    if (removeClasses) {
-        defaultCell$.attr('class', classes);
-    }
+        this.maze$.on('mouseover', '.cell', (e) => {
+            e.stopPropagation();
 
-    mazeBg$.css({
-        padding: mazePadding,
-        'border-radius': mazePadding * 1.5
-    });
+            const cell$ = $(e.currentTarget);
 
-    $('.vertex').css({
-        top: -mazePadding,
-        right: -mazePadding,
-        height: mazePadding*2,
-        width: mazePadding*2,
-        'border-radius': mazePadding
-    });
-}
-
-function renderMaze(withColor) {
-    const cells = maze.getCells();
-
-    cells.forEach((cell, idx) => {
-        const cell$ = cells$[idx];
-        const wallDict = cell.getWalls();
-
-        Object.keys(wallDict).forEach((key) => {
-            if (wallDict[key].state === WallState.REMOVED){
-                cell$.addClass(`open-${key}`);
+            if (this.currentMode === InteractionMode.SCREEN_SAVER) {
+                return;
             }
+            else if (this.currentMode === InteractionMode.SHORTEST_PATH) {
+                // TODO: revamp the styling here, support start & end points
+                const cells = this.maze.getCells();
+                cells.forEach(cell => cell.color = 'black');
+
+                const pathData = this.maze.getShortestPathData(0, cell$.attr('id'));
+                pathData.forEach((cell) => cell.color = 'tomato');
+
+            } else if (this.currentMode === InteractionMode.DISTANCE_MAP) {
+                const distanceDict = this.maze.getDistanceDict(cell$.attr('id'));
+                const maxDist = Object.values(distanceDict).sort((a,b)=> parseInt(a) > parseInt(b)? -1 : 1)[0];
+
+                // Set hue by normalized distance (i.e. fraction of max dist).
+                this.maze.getCells().forEach((cell) => {
+                    cell.color = `hsl(${300 * distanceDict[cell] / maxDist}, 100%, 40%)`;
+                });
+            }
+
+            this.mazeBg$.addClass('highlight-foreground');
+            this.renderMaze(true);
         });
 
-        const cellColor = (withColor && cell.visited) ? (cell.color || cell.group.color) : '';
-        cell$.find('.walls').css('background-color', cellColor);
+        $('body').on('mouseover', () => {
+            if (this.currentMode === InteractionMode.SCREEN_SAVER) return;
 
-        cell$.toggleClass('pending', !cell.visited);
-    });
-}
+            this.mazeBg$.removeClass('highlight-foreground');
+            this.renderMaze(false);
+        });
 
-function startMaze() {
-    currentMode = InteractionMode.DISTANCE_MAP;
-
-    maze = new Maze(nRows, nCols);
-    setupView();
-
-    maze.generateMaze();
-    renderMaze(false);
-}
-
-function startScreenSaver() {
-    currentMode = InteractionMode.SCREEN_SAVER;
-
-    nRows = randInt(MIN_SIZE, MAX_SIZE);
-    nCols = randInt(MIN_SIZE, MAX_SIZE);
-
-    maze = new Maze(nRows, nCols);
-
-    let visitFunc = maze.getVisitFunction(false);
-    let roundsToSkip = 1;
-
-    screenSaverInterval = setInterval(()=>{
-        if (roundsToSkip > 0) {
-            roundsToSkip--;
-            if (!roundsToSkip) setupView(maze);
-        }
-        else {
-            const shouldRepeat = visitFunc();
-            renderMaze(true);
-
-            if(!shouldRepeat){
-                nRows = randInt(MIN_SIZE, MAX_SIZE);
-                nCols = randInt(MIN_SIZE, MAX_SIZE);
-
-                maze = new Maze(nRows, nCols);
-                visitFunc = maze.getVisitFunction(false);
-                roundsToSkip = 30;
+        // TODO: add buttons to control mode-switching
+        $(document).keydown((e) => {
+            if (e.which === 32) {
+                this.currentMode = this.currentMode === InteractionMode.DISTANCE_MAP ? InteractionMode.SHORTEST_PATH : InteractionMode.DISTANCE_MAP;
             }
-        }
-    }, SCREEN_SAVER_SPEED);
-}
+        });
+    }
 
-function stopScreenSaver() {
-    clearInterval(screenSaverInterval);
+    setupView() {
+        this.maze$.empty();
+        this.cells$ = [];
+
+        const cells = this.maze.getCells()
+        cells.forEach((cell, idx) => {
+            const newCell$ = this.cellTpl$.clone();
+            newCell$.attr('id', idx);
+
+            this.cells$.push(newCell$);
+            this.maze$.append(newCell$);
+        });
+
+        this.maze$.css({
+            'grid-template-rows': `repeat(${this.nRows}, 1fr)`,
+            'grid-template-columns': `repeat(${this.nCols}, 1fr)`
+        });
+
+        this.updateView();
+    }
+
+    updateView() {
+        const mazeAspect = this.nRows / this.nCols;
+        const screenAspect = window.innerHeight / window.innerWidth;
+
+        this.mazeBg$.css({
+            width: screenAspect > mazeAspect ? '80vw' : `${80/mazeAspect}vh` ,
+            height: mazeAspect >= screenAspect ? '80vh' : `${80*mazeAspect}vw`
+        });
+
+        const defaultCell$ = this.maze$.find('.cell').first();
+
+        // If cell has open any walls, remove classes before calculating padding.
+        const classes = defaultCell$.attr('class');
+        const removeClasses = classes.split(' ').length > 1;
+        if (removeClasses) {
+            defaultCell$.attr('class', 'cell');
+        }
+
+        const defaultWall$ = defaultCell$.find('.walls');
+        const mazePadding = (defaultCell$.width()-defaultWall$.width())/2;
+
+        if (removeClasses) {
+            defaultCell$.attr('class', classes);
+        }
+
+        this.mazeBg$.css({
+            padding: mazePadding,
+            'border-radius': mazePadding * 1.5
+        });
+
+        $('.vertex').css({
+            top: -mazePadding,
+            right: -mazePadding,
+            height: mazePadding*2,
+            width: mazePadding*2,
+            'border-radius': mazePadding
+        });
+    }
+
+    renderMaze(withColor) {
+        const cells = this.maze.getCells();
+
+        cells.forEach((cell, idx) => {
+            const cell$ = this.cells$[idx];
+            const wallDict = cell.getWalls();
+
+            Object.keys(wallDict).forEach((key) => {
+                if (wallDict[key].state === WallState.REMOVED){
+                    cell$.addClass(`open-${key}`);
+                }
+            });
+
+            const cellColor = (withColor && cell.visited) ? (cell.color || cell.group.color) : '';
+            cell$.find('.walls').css('background-color', cellColor);
+
+            cell$.toggleClass('pending', !cell.visited);
+        });
+    }
+
+    startMaze() {
+        this.currentMode = InteractionMode.DISTANCE_MAP;
+
+        this.maze = new Maze(this.nRows, this.nCols);
+        this.setupView();
+
+        this.maze.generateMaze();
+        this.renderMaze(false);
+    }
+
+    startScreenSaver() {
+        this.currentMode = InteractionMode.SCREEN_SAVER;
+
+        this.nRows = randInt(MIN_SIZE, MAX_SIZE);
+        this.nCols = randInt(MIN_SIZE, MAX_SIZE);
+
+        this.maze = new Maze(this.nRows, this.nCols);
+
+        let visitFunc = this.maze.getVisitFunction(false);
+        let roundsToSkip = 1;
+
+        this.screenSaverInterval = setInterval(()=>{
+            if (roundsToSkip > 0) {
+                roundsToSkip--;
+                if (!roundsToSkip) this.setupView();
+            }
+            else {
+                const shouldRepeat = visitFunc();
+                this.renderMaze(true);
+
+                if(!shouldRepeat){
+                    this.nRows = randInt(MIN_SIZE, MAX_SIZE);
+                    this.nCols = randInt(MIN_SIZE, MAX_SIZE);
+
+                    this.maze = new Maze(this.nRows, this.nCols);
+                    visitFunc = this.maze.getVisitFunction(false);
+                    roundsToSkip = 30;
+                }
+            }
+        }, SCREEN_SAVER_SPEED);
+    }
+
+    stopScreenSaver() {
+        clearInterval(this.screenSaverInterval);
+    }
 }
