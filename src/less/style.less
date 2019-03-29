@@ -1,6 +1,37 @@
+// Variables
+
 @bgColor: black;
 @wallColor: white;
 @wallWidth: 13%;
+
+@pathStartColor: limegreen;
+@pathEndColor: red;
+@pathMiddleFg: khaki;
+@pathMiddleBg: darken(desaturate(@pathMiddleFg, 20%), 50%);
+
+// Mixin classes
+
+.centered {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+
+.full-size {
+    width: 100%;
+    height: 100%;
+}
+
+.inset(@amount) {
+    top: @amount;
+    right: @amount;
+    bottom: @amount;
+    left: @amount;
+}
+
+// Main styles
 
 body {
     margin: 0;
@@ -14,10 +45,7 @@ body {
 }
 
 #maze-background {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    .centered();
 
     background-image: linear-gradient(45deg, #2ac4ff, #e97ff1);
     overflow: hidden;
@@ -39,17 +67,15 @@ body {
     mix-blend-mode: multiply;
 
     position: relative;
-    width: 100%;
-    height: 100%;
+    .full-size();
 
     overflow: hidden;
 
-    > .cell {
-        height: 100%;
-        width: 100%;
+    >.cell {
         position: relative;
+        .full-size();
 
-        > .walls {
+        >.walls {
             background-color: @bgColor;
             &:hover {
                 background-color: lighten(@bgColor, 60%);
@@ -63,13 +89,10 @@ body {
         }
 
         &.pending {
-            > .walls {
-                top: @wallWidth/6;
-                left: @wallWidth/6;
-                bottom: @wallWidth/6;
-                right: @wallWidth/6;
+            >.walls {
+                .inset(@wallWidth/6);
             }
-            > .vertex {
+            >.vertex {
                 visibility: hidden;
             }
         }
@@ -87,20 +110,39 @@ body {
             bottom: -1px;
         }
 
-        > .vertex {
+        >.vertex {
             position: absolute;
             background-color: @wallColor;
             z-index: 1;
         }
 
-        > .label {
-            display: none; // display for debug purposes
-            font-family: Courier;
-            font-size: 18px;
-            color: white;
+        >.path {
             position: absolute;
-            top: 30%;
-            left: 40%;
+            visibility: hidden;
+            border-radius: 100px;
+        }
+
+        &.path-start {
+            >.path {
+                visibility: visible;
+                background-color: @pathStartColor;
+                .inset(@wallWidth*1.5);
+            }
+        }
+        &.path-middle {
+            >.path {
+                visibility: visible;
+                background-color: @pathMiddleBg;
+                background-image: radial-gradient(@pathMiddleFg 25%, @pathMiddleBg);
+                .inset(@wallWidth*2.25);
+            }
+        }
+        &.path-end {
+            >.path {
+                visibility: visible;
+                background-color: @pathEndColor;
+                .inset(@wallWidth*1.5);
+            }
         }
     }
 }

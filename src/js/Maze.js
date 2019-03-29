@@ -123,7 +123,7 @@ class Maze {
 
         let prevCell = endCell;
         while (prevCell !== null) {
-            path.push(prevCell)
+            path.unshift(prevCell)
             prevCell = previousDict[prevCell];
         }
 
