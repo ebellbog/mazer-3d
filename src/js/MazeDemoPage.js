@@ -25,6 +25,11 @@ class MazeDemoPage {
 
         this.pathStart = null;
         this.pathEnd = null;
+        this.pathLength = 0;
+        this.maxLength = 0;
+
+        this.pathLength$ = $('#path-length');
+        this.maxLength$ = $('#max-length');
 
         this.maze$ = $('#maze');
         this.mazeBg$ = $('#maze-background');
@@ -32,6 +37,8 @@ class MazeDemoPage {
         const templates$ = $('#templates');
         this.cellTpl$ = templates$.find('.cell');
         this.cells$ = {};
+
+        this.tooltip$ = $('#tooltip');
 
         this.hookEvents();
     }
@@ -51,6 +58,7 @@ class MazeDemoPage {
                 else if (this.currentMode === InteractionMode.SHORTEST_PATH) {
                     if (!this.pathStart || this.pathEnd) return;
                     this.updatePath(this.pathStart, cell$.attr('id'));
+                    this.tooltip$.show();
                 } else if (this.currentMode === InteractionMode.DISTANCE_MAP) {
                     const distanceDict = this.maze.getDistanceDict(cell$.attr('id'));
                     const maxDist = Object.values(distanceDict).sort((a,b)=> parseInt(a) > parseInt(b)? -1 : 1)[0];
@@ -72,9 +80,13 @@ class MazeDemoPage {
 
                     if (this.pathStart && !this.pathEnd) {
                         this.pathEnd = cellId;
+                        this.tooltip$.hide();
                     } else {
                         this.pathStart = cellId;
                         this.pathEnd = null;
+
+                        this.pathLength = 0;
+                        this.maxLength = 0;
                     }
 
                     this.updatePath(this.pathStart, this.pathEnd);
@@ -87,21 +99,27 @@ class MazeDemoPage {
                     Object.values(this.cells$).forEach((cell$) => cell$.find('.walls').css('background-color', ''));
                     this.mazeBg$.removeClass('highlight-foreground');
                 }
+                this.tooltip$.hide();
             })
             .on('click', () => {
                 if (this.currentMode === InteractionMode.SHORTEST_PATH) {
                     this.pathStart = null;
                     this.pathEnd = null;
                     this.updatePath(null, null);
+                    this.tooltip$.hide();
                 }
             });
 
         // TODO: add buttons to control mode-switching
-        $(document).keydown((e) => {
-            if (e.which === 32) {
-                this.currentMode = this.currentMode === InteractionMode.DISTANCE_MAP ? InteractionMode.SHORTEST_PATH : InteractionMode.DISTANCE_MAP;
-            }
-        });
+        $(document)
+            .keydown((e) => {
+                if (e.which === 32) {
+                    this.currentMode = this.currentMode === InteractionMode.DISTANCE_MAP ? InteractionMode.SHORTEST_PATH : InteractionMode.DISTANCE_MAP;
+                }
+            })
+            .on('mousemove', (e) => {
+                this.updateTooltip(e);
+            });
     }
 
     setupView() {
@@ -180,12 +198,21 @@ class MazeDemoPage {
         }
 
         const pathData = this.maze.getShortestPathData(start, end);
+        this.pathLength = pathData.length-1;
+        this.maxLength = Math.max(this.maxLength, this.pathLength);
+
         pathData.forEach((cell, idx) => {
             const cell$ = this.cells$[cell];
             cell$.addClass(idx === 0 ? 'path-start' : idx === pathData.length - 1 ? 'path-end' : 'path-middle')
         });
 
         this.renderMaze(false);
+    }
+
+    updateTooltip(e) {
+        this.tooltip$.css({ top: e.clientY - this.tooltip$.innerHeight() - 20, left: e.clientX - this.tooltip$.innerWidth() / 2 });
+        this.pathLength$.html(this.pathLength);
+        this.maxLength$.html(this.maxLength);
     }
 
     renderMaze(withColor) {
