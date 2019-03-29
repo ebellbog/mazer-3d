@@ -46,9 +46,9 @@ class Maze {
             if(index < cells.length){
                 const cell = cells[index];
                 cell.visit();
-                index+=1;
+                index++;
             }
-            return index ===cells.length ? false : true;
+            return index === cells.length ? false : true;
         }
     }
 

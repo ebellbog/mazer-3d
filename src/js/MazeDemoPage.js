@@ -57,13 +57,11 @@ class MazeDemoPage {
 
                     // Set hue by normalized distance (i.e. fraction of max dist).
                     this.maze.getCells().forEach((cell) => {
-                        cell.color = `hsl(${300 * distanceDict[cell] / maxDist}, 100%, 40%)`;
+                        this.cells$[cell].find('.walls').css('background-color', `hsl(${300 * distanceDict[cell] / maxDist}, 100%, 40%)`);
                     });
 
                     this.mazeBg$.addClass('highlight-foreground');
-                    this.renderMaze(true);
                 }
-
             })
             .on('click', '.cell', (e) => {
                 e.stopPropagation();
@@ -86,8 +84,8 @@ class MazeDemoPage {
         $('body')
             .on('mouseover', () => {
                 if (this.currentMode === InteractionMode.DISTANCE_MAP) {
+                    Object.values(this.cells$).forEach((cell$) => cell$.find('.walls').css('background-color', ''));
                     this.mazeBg$.removeClass('highlight-foreground');
-                    this.renderMaze(false);
                 }
             })
             .on('click', () => {
@@ -203,8 +201,10 @@ class MazeDemoPage {
                 }
             });
 
-            const cellColor = (withColor && cell.visited) ? (cell.color || cell.group.color) : '';
-            cell$.find('.walls').css('background-color', cellColor);
+            if (withColor) {
+                const cellColor = cell.visited ? cell.group.color : '';
+                cell$.find('.walls').css('background-color', cellColor);
+            }
 
             cell$.toggleClass('pending', !cell.visited);
         });
