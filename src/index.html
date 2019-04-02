@@ -11,12 +11,23 @@
             <div id="maze-background">
                 <div id="maze"></div>
             </div>
-            <div id="templates" hidden>
-                <div class="cell">
-                    <div class="walls"></div>
-                    <div class="vertex"></div>
-                    <div class="path"></div>
-                </div>
+            <div id="toolbar">
+                <span id="interaction-mode">
+                    <span class="tool-label">Mouseover:</span>
+                    <span class="tool-option" id="distance-map">Distance map</span>
+                    <span class="separator"> | </span>
+                    <span class="tool-option option-selected" id="shortest-path">Shortest path</span>
+                </span>
+                <span id="animation-controls">
+                    <span id="start-animating" class="tool-option">	&#9654; Start animating</span>
+                </span>
+            </div>
+        </div>
+        <div id="templates" hidden>
+            <div class="cell">
+                <div class="walls"></div>
+                <div class="vertex"></div>
+                <div class="path"></div>
             </div>
         </div>
         <div id="tooltip">
