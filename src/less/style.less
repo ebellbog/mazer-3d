@@ -1,6 +1,12 @@
 // Variables
 
 @bgColor: black;
+@bgColorLight: #333;
+@bgColorDark: #222;
+
+@gradientColor1: #3bb7ff;
+@gradientColor2: #ee42fb;
+
 @wallColor: white;
 @wallWidth: 13%;
 
@@ -39,18 +45,25 @@
 body {
     margin: 0;
     padding: 0;
+    overflow: hidden;
 }
 
 #page-background {
     width: 100%;
     height: 100vh;
-    background-color: @bgColor;
+    background-image: repeating-linear-gradient(
+        45deg,
+        @bgColorLight,
+        @bgColorLight 20px,
+        @bgColorDark 20px,
+        @bgColorDark 40px
+    );
 }
 
 #maze-background {
     .centered();
 
-    background-image: linear-gradient(45deg, #2ac4ff, #e97ff1);
+    background-image: linear-gradient(45deg, @gradientColor1, @gradientColor2);
     overflow: hidden;
 
     mix-blend-mode: screen;
@@ -58,7 +71,6 @@ body {
     &.highlight-foreground {
         background-image: none;
         background-color: white;
-        mix-blend-mode: normal;
     }
 }
 
@@ -183,5 +195,57 @@ body {
         border-top: @tooltipArrowSize solid @tooltipColor;
         border-left: @tooltipArrowSize solid transparent;
         border-right: @tooltipArrowSize solid transparent;
+    }
+}
+
+#toolbar {
+    cursor: default;
+
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+
+    height: 36px;
+    line-height: 36px;
+
+    background-color: rgba(250, 250, 250, 0.5);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
+
+    font-family: Courier, monospace;
+    color: white;
+
+    .tool-label {
+        font-weight: bold;
+    }
+
+    .tool-option {
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        &.active {
+            cursor: default;
+
+            background-image: linear-gradient(140deg, darken(@gradientColor1, 10%), darken(@gradientColor2, 10%));
+            background-color: darken(@gradientColor2, 10%);
+            padding: 4px 7px;
+            border-radius: 14px;
+
+            &:hover {
+                text-decoration: none;
+            }
+        }
+    }
+
+    #interaction-mode {
+        float: left;
+        padding-left: 10px;
+    }
+    #animation-controls {
+        float: right;
+        padding-right: 10px;
     }
 }
