@@ -3,15 +3,22 @@ import Maze from './Maze.js';
 import Wall from './Wall.js'
 import {WallState} from './Wall.js'
 
-const SCREEN_SAVER_SPEED = 40; // Delay in milliseconds between cell visits.
+const DISTANCE_MAP_ANIMATION_SPEED = 40; // Delay (in milliseconds) between distance steps.
+
+const ANIMATION_SPEED = 40; // Delay (in milliseconds) between cell visits.
 const MIN_SIZE = 6;
 const MAX_SIZE = 30;
 
 const InteractionMode = {
     SHORTEST_PATH: 'SHORTEST_PATH',
     DISTANCE_MAP: 'DISTANCE_MAP',
-    SCREEN_SAVER: 'SCREEN_SAVER'
 };
+
+// Helper methods
+
+function getColorForNormalizedDistance(distance) {
+   return `hsl(${300 * distance}, 100%, 40%)`;
+}
 
 class MazeDemoPage {
     constructor() {
@@ -20,7 +27,8 @@ class MazeDemoPage {
 
         this.maze = null;
 
-        this.currentMode = null;
+        this.currentMode = InteractionMode.DISTANCE_MAP;
+        this.isAnimating = false;
         this.screenSaverInterval = null;
 
         this.pathStart = null;
@@ -39,6 +47,7 @@ class MazeDemoPage {
         this.cells$ = {};
 
         this.tooltip$ = $('#tooltip');
+        this.toolbar$ = $('#toolbar');
 
         this.hookEvents();
     }
@@ -52,30 +61,21 @@ class MazeDemoPage {
 
                 const cell$ = $(e.currentTarget);
 
-                if (this.currentMode === InteractionMode.SCREEN_SAVER) {
-                    return;
-                }
+                if (this.isAnimating) return;
                 else if (this.currentMode === InteractionMode.SHORTEST_PATH) {
                     if (!this.pathStart || this.pathEnd) return;
                     this.updatePath(this.pathStart, cell$.attr('id'));
                     this.tooltip$.show();
                 } else if (this.currentMode === InteractionMode.DISTANCE_MAP) {
-                    const distanceDict = this.maze.getDistanceDict(cell$.attr('id'));
-                    const maxDist = Object.values(distanceDict).sort((a,b)=> parseInt(a) > parseInt(b)? -1 : 1)[0];
-
-                    // Set hue by normalized distance (i.e. fraction of max dist).
-                    this.maze.getCells().forEach((cell) => {
-                        this.cells$[cell].find('.walls').css('background-color', `hsl(${300 * distanceDict[cell] / maxDist}, 100%, 40%)`);
-                    });
-
-                    this.mazeBg$.addClass('highlight-foreground');
+                    this.drawDistanceMap(cell$);
                 }
             })
             .on('click', '.cell', (e) => {
                 e.stopPropagation();
+                const cell$ = $(e.currentTarget);
 
-                if (this.currentMode === InteractionMode.SHORTEST_PATH) {
-                    const cell$ = $(e.currentTarget);
+                if (this.isAnimating) return;
+                else if (this.currentMode === InteractionMode.SHORTEST_PATH) {
                     const cellId = cell$.attr('id');
 
                     if (this.pathStart && !this.pathEnd) {
@@ -90,42 +90,44 @@ class MazeDemoPage {
                     }
 
                     this.updatePath(this.pathStart, this.pathEnd);
+                } else if (this.currentMode === InteractionMode.DISTANCE_MAP) {
+                    this.animateDistanceMap(cell$);
                 }
             });
 
-        $('#toolbar')
-            .on('click', '#distance-map:not(active)', () => {
+        this.toolbar$
+            .on('click', '#distance-map:not(.active)', () => {
                 this.currentMode = InteractionMode.DISTANCE_MAP;
                 this.clearPath();
                 $('#shortest-path').removeClass('active');
                 $('#distance-map').addClass('active');
             })
-            .on('click', '#shortest-path:not(active)', () => {
+            .on('click', '#shortest-path:not(.active)', () => {
                 this.currentMode = InteractionMode.SHORTEST_PATH;
                 $('#distance-map').removeClass('active');
                 $('#shortest-path').addClass('active');
             });
 
-        $('#start-animating').click(() => {
-            $('#toolbar').addClass('animating');
-            this.startScreenSaver();
-        });
+        $('#start-animating').click(() => this.startAnimating());
+        $('#stop-animating').click(()=>this.stopAnimating());
+
 
         $('body')
             .on('mouseover', () => {
-                if (this.currentMode === InteractionMode.DISTANCE_MAP) {
+                if (this.isAnimating) return;
+                else if (this.currentMode === InteractionMode.DISTANCE_MAP) {
                     Object.values(this.cells$).forEach((cell$) => cell$.find('.walls').css('background-color', ''));
                     this.mazeBg$.removeClass('highlight-foreground');
                 }
                 this.tooltip$.hide();
             })
             .on('click', () => {
-                if (this.currentMode === InteractionMode.SHORTEST_PATH) {
+                if (this.isAnimating) return;
+                else if (this.currentMode === InteractionMode.SHORTEST_PATH) {
                     this.clearPath();
                 }
             });
 
-        // TODO: add buttons to control mode-switching
         $(document)
             .on('mousemove', (e) => {
                 this.updateTooltip(e);
@@ -245,17 +247,14 @@ class MazeDemoPage {
                 }
             });
 
-            if (withColor) {
-                const cellColor = cell.visited ? cell.group.color : '';
-                cell$.find('.walls').css('background-color', cellColor);
-            }
+            const cellColor = withColor && cell.visited ? cell.group.color : '';
+            cell$.find('.walls').css('background-color', cellColor);
 
             cell$.toggleClass('pending', !cell.visited);
         });
     }
 
     startMaze() {
-        this.currentMode = InteractionMode.SHORTEST_PATH;
 
         this.maze = new Maze(this.nRows, this.nCols);
         this.setupView();
@@ -264,15 +263,19 @@ class MazeDemoPage {
         this.renderMaze(false);
     }
 
-    startScreenSaver() {
-        this.currentMode = InteractionMode.SCREEN_SAVER;
+    startAnimating() {
+        this.isAnimating = true;
+
+        this.toolbar$.addClass('animating');
+        this.toolbar$.find('#interaction-mode .tool-option').attr('disabled', true);
+
+        this.mazeBg$.addClass('highlight-foreground');
 
         this.nRows = randInt(MIN_SIZE, MAX_SIZE);
         this.nCols = randInt(MIN_SIZE, MAX_SIZE);
 
         this.maze = new Maze(this.nRows, this.nCols);
 
-        let visitFunc = this.maze.getVisitFunction(false);
         let roundsToSkip = 1;
 
         this.screenSaverInterval = setInterval(()=>{
@@ -281,23 +284,80 @@ class MazeDemoPage {
                 if (!roundsToSkip) this.setupView();
             }
             else {
-                const shouldRepeat = visitFunc();
+                const shouldRepeat = this.maze.generateNextCell();
                 this.renderMaze(true);
 
-                if(!shouldRepeat){
+                if (!shouldRepeat) {
                     this.nRows = randInt(MIN_SIZE, MAX_SIZE);
                     this.nCols = randInt(MIN_SIZE, MAX_SIZE);
 
                     this.maze = new Maze(this.nRows, this.nCols);
-                    visitFunc = this.maze.getVisitFunction(false);
                     roundsToSkip = 30;
                 }
             }
-        }, SCREEN_SAVER_SPEED);
+        }, ANIMATION_SPEED);
     }
 
-    stopScreenSaver() {
+    stopAnimating() {
+        this.isAnimating = false;
+
+        this.toolbar$.removeClass('animating');
+        this.toolbar$.find('#interaction-mode .tool-option').attr('disabled', false);
+
+        this.mazeBg$.removeClass('highlight-foreground');
+
         clearInterval(this.screenSaverInterval);
+        while (this.maze.generateNextCell()) {}
+
+        this.renderMaze();
+    }
+
+    drawDistanceMap(startCell$) {
+        const distanceDict = this.maze.getDistanceDict(startCell$.attr('id'));
+        const maxDist = Object.values(distanceDict).sort((a, b) => parseInt(a) > parseInt(b) ? -1 : 1)[0];
+
+        // Set hue by normalized distance (i.e. fraction of max dist).
+        this.maze.getCells().forEach((cell) => {
+            this.cells$[cell].find('.walls').css('background-color', getColorForNormalizedDistance(distanceDict[cell] / maxDist));
+        });
+
+        this.mazeBg$.addClass('highlight-foreground');
+    }
+
+    animateDistanceMap(startCell$) {
+        this.isAnimating = true;
+        this.renderMaze(false);
+
+        this.toolbar$.addClass('animating-distance-map');
+        this.toolbar$.find('.tool-option').attr('disabled', true);
+
+        const distanceDict = this.maze.getDistanceDict(startCell$.attr('id'));
+        const reversedDict = {};
+        Object.keys(distanceDict).forEach((cell) => {
+            const distance = distanceDict[cell];
+            if (!(distance in reversedDict)) {
+                reversedDict[distance] = [];
+            }
+            reversedDict[distance].push(cell)
+        });
+        const maxDist = Object.keys(reversedDict).length;
+        let currentDist = 0;
+        const distanceInterval = setInterval(()=>{
+            if (currentDist < maxDist) {
+                const cells = reversedDict[currentDist];
+                cells.forEach((cell)=>{
+                    this.cells$[cell].find('.walls').css('background-color', getColorForNormalizedDistance(currentDist / maxDist));
+                });
+                currentDist++;
+            }
+            else {
+                clearInterval(distanceInterval);
+
+                this.isAnimating = false;
+                this.toolbar$.removeClass('animating-distance-map');
+                this.toolbar$.find('.tool-option').attr('disabled', false);
+            }
+        }, DISTANCE_MAP_ANIMATION_SPEED);
     }
 }
 

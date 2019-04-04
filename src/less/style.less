@@ -40,6 +40,15 @@
     left: @amount;
 }
 
+.disabled {
+    opacity: 0.4;
+
+    :hover {
+        text-decoration: none;
+        cursor: default; // TODO: fix flicker
+    }
+}
+
 // Main styles
 
 body {
@@ -216,14 +225,22 @@ body {
     font-family: Courier, monospace;
     color: white;
 
-    .tool-label {
-        font-weight: bold;
-    }
-
     .tool-option {
+        background: none;
+        border: none;
+        border-radius: 14px;
+
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+
         cursor: pointer;
         padding: 4px 7px;
         margin: 0;
+
+        &:focus {
+            outline: none;
+        }
 
         &:hover {
             text-decoration: underline;
@@ -234,7 +251,6 @@ body {
 
             background-image: linear-gradient(140deg, darken(@gradientColor1, 5%), darken(@gradientColor2, 5%));
             background-color: darken(@gradientColor2, 5%);
-            border-radius: 14px;
 
             &:hover {
                 text-decoration: none;
@@ -243,6 +259,25 @@ body {
 
         .icon {
             font-size: 12px;
+        }
+    }
+
+    &.animating {
+        #interaction-mode {
+            .disabled();
+        }
+
+        #start-animating{
+            display: none;
+        }
+        #stop-animating {
+            display: inline-block;
+        }
+    }
+
+    &.animating-distance-map {
+        >div {
+            .disabled();
         }
     }
 
