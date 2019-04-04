@@ -93,6 +93,24 @@ class MazeDemoPage {
                 }
             });
 
+        $('#toolbar')
+            .on('click', '#distance-map:not(active)', () => {
+                this.currentMode = InteractionMode.DISTANCE_MAP;
+                this.clearPath();
+                $('#shortest-path').removeClass('active');
+                $('#distance-map').addClass('active');
+            })
+            .on('click', '#shortest-path:not(active)', () => {
+                this.currentMode = InteractionMode.SHORTEST_PATH;
+                $('#distance-map').removeClass('active');
+                $('#shortest-path').addClass('active');
+            });
+
+        $('#start-animating').click(() => {
+            $('#toolbar').addClass('animating');
+            this.startScreenSaver();
+        });
+
         $('body')
             .on('mouseover', () => {
                 if (this.currentMode === InteractionMode.DISTANCE_MAP) {
@@ -103,20 +121,12 @@ class MazeDemoPage {
             })
             .on('click', () => {
                 if (this.currentMode === InteractionMode.SHORTEST_PATH) {
-                    this.pathStart = null;
-                    this.pathEnd = null;
-                    this.updatePath(null, null);
-                    this.tooltip$.hide();
+                    this.clearPath();
                 }
             });
 
         // TODO: add buttons to control mode-switching
         $(document)
-            .keydown((e) => {
-                if (e.which === 32) {
-                    this.currentMode = this.currentMode === InteractionMode.DISTANCE_MAP ? InteractionMode.SHORTEST_PATH : InteractionMode.DISTANCE_MAP;
-                }
-            })
             .on('mousemove', (e) => {
                 this.updateTooltip(e);
             });
@@ -207,6 +217,13 @@ class MazeDemoPage {
         });
 
         this.renderMaze(false);
+    }
+
+    clearPath() {
+        this.pathStart = null;
+        this.pathEnd = null;
+        this.updatePath(null, null);
+        this.tooltip$.hide();
     }
 
     updateTooltip(e) {
