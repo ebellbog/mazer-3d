@@ -1,4 +1,5 @@
 import {randInt} from './utils.js';
+import GitHubLogo from '../../static/images/GitHub-Mark-Light-64px.png';
 import Maze from './Maze.js';
 import Wall from './Wall.js'
 import {WallState} from './Wall.js'
@@ -51,6 +52,8 @@ class MazeDemoPage {
 
         this.tooltip$ = $('#tooltip');
         this.toolbar$ = $('#toolbar');
+
+        $('#github-link').css('background-image', `url(${GitHubLogo})`);
 
         this.hookEvents();
     }
@@ -141,7 +144,6 @@ class MazeDemoPage {
 
         $('#start-animating').click(() => this.startAnimating());
         $('#stop-animating').click(()=>this.stopAnimating());
-
 
         $('body')
             .on('mouseover', () => {

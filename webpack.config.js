@@ -47,6 +47,12 @@ const config = {
                         'less-loader'
                 ],
             },
+            {
+                test: /\.png$/,
+                use: [
+                    'file-loader'
+                ]
+            }
         ]
     },
     plugins: mode === 'production' ? plugins.concat([new MiniCssExtractPlugin()]) : plugins
