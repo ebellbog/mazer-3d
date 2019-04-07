@@ -6,8 +6,11 @@ import {WallState} from './Wall.js'
 const DISTANCE_MAP_ANIMATION_SPEED = 40; // Delay (in milliseconds) between distance steps.
 
 const ANIMATION_SPEED = 40; // Delay (in milliseconds) between cell visits.
-const MIN_SIZE = 6;
-const MAX_SIZE = 30;
+const MIN_RANDOM = 6;
+const MAX_RANDOM = 30;
+
+const MIN_CUSTOM = 3;
+const MAX_CUSTOM = 40;
 
 const InteractionMode = {
     SHORTEST_PATH: 'SHORTEST_PATH',
@@ -108,6 +111,34 @@ class MazeDemoPage {
                 $('#shortest-path').addClass('active');
             });
 
+        $('#new-maze').click(() => {
+            this.nRows = $('#rows').val();
+            this.nCols = $('#cols').val();
+            this.startMaze();
+        });
+
+        $('#new-maze input')
+            .click((e) => {
+                e.stopPropagation();
+            })
+            .focus((e) => {
+                const input$ = $(e.target);
+                input$.data('previous', parseInt(input$.val()));
+            })
+            .change((e) => {
+                const input$ = $(e.target);
+                const inputValue = parseInt(input$.val());
+                const prevValue = input$.data('previous');
+
+                const newValue = Math.max(Math.min(inputValue || prevValue, MAX_CUSTOM), MIN_CUSTOM);
+                input$.val(newValue);
+
+                if (newValue !== prevValue) {
+                    input$.css('margin', `0 -${6 * (newValue >= 10 ? 1 : 2)}px`);
+                    $('#new-maze').click();
+                }
+            });
+
         $('#start-animating').click(() => this.startAnimating());
         $('#stop-animating').click(()=>this.stopAnimating());
 
@@ -151,6 +182,9 @@ class MazeDemoPage {
             'grid-template-rows': `repeat(${this.nRows}, 1fr)`,
             'grid-template-columns': `repeat(${this.nCols}, 1fr)`
         });
+
+        $('#rows').val(this.nRows);
+        $('#cols').val(this.nCols);
 
         this.updateView();
     }
@@ -255,7 +289,6 @@ class MazeDemoPage {
     }
 
     startMaze() {
-
         this.maze = new Maze(this.nRows, this.nCols);
         this.setupView();
 
@@ -271,8 +304,8 @@ class MazeDemoPage {
 
         this.mazeBg$.addClass('highlight-foreground');
 
-        this.nRows = randInt(MIN_SIZE, MAX_SIZE);
-        this.nCols = randInt(MIN_SIZE, MAX_SIZE);
+        this.nRows = randInt(MIN_RANDOM, MAX_RANDOM);
+        this.nCols = randInt(MIN_RANDOM, MAX_RANDOM);
 
         this.maze = new Maze(this.nRows, this.nCols);
 
@@ -288,8 +321,8 @@ class MazeDemoPage {
                 this.renderMaze(true);
 
                 if (!shouldRepeat) {
-                    this.nRows = randInt(MIN_SIZE, MAX_SIZE);
-                    this.nCols = randInt(MIN_SIZE, MAX_SIZE);
+                    this.nRows = randInt(MIN_RANDOM, MAX_RANDOM);
+                    this.nCols = randInt(MIN_RANDOM, MAX_RANDOM);
 
                     this.maze = new Maze(this.nRows, this.nCols);
                     roundsToSkip = 30;

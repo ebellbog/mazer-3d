@@ -244,6 +244,10 @@ body {
 
         &:hover {
             text-decoration: underline;
+
+            input {
+                text-decoration: underline;
+            }
         }
 
         &.active {
@@ -292,5 +296,19 @@ body {
     #animation-controls {
         float: right;
         padding-right: 10px;
+
+        input {
+            background: none;
+            border: none;
+            margin: 0 -6px;
+            padding: 0;
+
+            max-width: 30px;
+            text-align: center;
+
+            color: inherit;
+            font-size: inherit;
+            font-family: inherit;
+        }
     }
 }
