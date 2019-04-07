@@ -134,7 +134,7 @@ class MazeDemoPage {
                 input$.val(newValue);
 
                 if (newValue !== prevValue) {
-                    input$.css('margin', `0 -${6 * (newValue >= 10 ? 1 : 2)}px`);
+                    this.resizeInput(input$, newValue);
                     $('#new-maze').click();
                 }
             });
@@ -183,8 +183,8 @@ class MazeDemoPage {
             'grid-template-columns': `repeat(${this.nCols}, 1fr)`
         });
 
-        $('#rows').val(this.nRows);
-        $('#cols').val(this.nCols);
+        this.resizeInput($('#rows').val(this.nRows), this.nRows);
+        this.resizeInput($('#cols').val(this.nCols), this.nCols);
 
         this.updateView();
     }
@@ -268,6 +268,10 @@ class MazeDemoPage {
         this.maxLength$.html(this.maxLength);
     }
 
+    resizeInput(input$, value) {
+        input$.css('margin', `0 -${6 * (value >= 10 ? 1 : 2)}px`);
+    }
+
     renderMaze(withColor) {
         const cells = this.maze.getCells();
 
@@ -304,27 +308,23 @@ class MazeDemoPage {
 
         this.mazeBg$.addClass('highlight-foreground');
 
-        this.nRows = randInt(MIN_RANDOM, MAX_RANDOM);
-        this.nCols = randInt(MIN_RANDOM, MAX_RANDOM);
-
-        this.maze = new Maze(this.nRows, this.nCols);
-
         let roundsToSkip = 1;
 
         this.screenSaverInterval = setInterval(()=>{
             if (roundsToSkip > 0) {
                 roundsToSkip--;
-                if (!roundsToSkip) this.setupView();
-            }
-            else {
-                const shouldRepeat = this.maze.generateNextCell();
-                this.renderMaze(true);
-
-                if (!shouldRepeat) {
+                if (!roundsToSkip) {
                     this.nRows = randInt(MIN_RANDOM, MAX_RANDOM);
                     this.nCols = randInt(MIN_RANDOM, MAX_RANDOM);
 
                     this.maze = new Maze(this.nRows, this.nCols);
+                    this.setupView();
+                }
+            } else {
+                const shouldRepeat = this.maze.generateNextCell();
+                this.renderMaze(true);
+
+                if (!shouldRepeat) {
                     roundsToSkip = 30;
                 }
             }
