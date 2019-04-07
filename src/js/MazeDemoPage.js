@@ -305,10 +305,10 @@ class MazeDemoPage {
     startAnimating() {
         this.isAnimating = true;
 
-        this.toolbar$.addClass('animating');
-        this.toolbar$.find('#interaction-mode .tool-option').attr('disabled', true);
-
         this.mazeBg$.addClass('highlight-foreground');
+
+        this.toolbar$.addClass('animating');
+        $('#new-maze, #interaction-mode .tool-option').disable();
 
         let roundsToSkip = 1;
 
@@ -336,10 +336,10 @@ class MazeDemoPage {
     stopAnimating() {
         this.isAnimating = false;
 
-        this.toolbar$.removeClass('animating');
-        this.toolbar$.find('#interaction-mode .tool-option').attr('disabled', false);
-
         this.mazeBg$.removeClass('highlight-foreground');
+
+        this.toolbar$.removeClass('animating');
+        $('#new-maze, #interaction-mode .tool-option').enable();
 
         clearInterval(this.screenSaverInterval);
         while (this.maze.generateNextCell()) {}
@@ -363,8 +363,7 @@ class MazeDemoPage {
         this.isAnimating = true;
         this.renderMaze(false);
 
-        this.toolbar$.addClass('animating-distance-map');
-        this.toolbar$.find('.tool-option').attr('disabled', true);
+        this.toolbar$.find('.tool-option').disable();
 
         const distanceDict = this.maze.getDistanceDict(startCell$.attr('id'));
         const reversedDict = {};
@@ -389,8 +388,7 @@ class MazeDemoPage {
                 clearInterval(distanceInterval);
 
                 this.isAnimating = false;
-                this.toolbar$.removeClass('animating-distance-map');
-                this.toolbar$.find('.tool-option').attr('disabled', false);
+                this.toolbar$.find('.tool-option').enable();
             }
         }, DISTANCE_MAP_ANIMATION_SPEED);
     }

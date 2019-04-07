@@ -6,6 +6,21 @@ function initUtils() {
         }
         return this;
     }
+
+    $.fn.extend({
+        disable: function () {
+            $(this)
+                .attr('disabled', true)
+                .addClass('disabled')
+                .find('input').attr('disabled', true);
+        },
+        enable: function() {
+            $(this)
+                .attr('disabled', false)
+                .removeClass('disabled')
+                .find('input').attr('disabled', false);
+        }
+    });
 }
 
 // min inclusive max inclusive
