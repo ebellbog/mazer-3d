@@ -266,6 +266,32 @@ body {
         }
     }
 
+    .joined-options {
+        .tool-option {
+            box-shadow: 0 0 4px black;
+            padding-top: 3px;
+            padding-bottom: 3px;
+
+            &:first-child {
+                border-right: none;
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+                margin-right: -5px;
+                padding-left: 10px;
+                clip-path: inset(-4px 0px -4px -4px);
+            }
+
+            &:last-child {
+                border-left: none;
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+                margin-left: -5px;
+                padding-right: 10px;
+                clip-path: inset(-4px -4px -4px 0px);
+            }
+        }
+    }
+
     &.animating {
         #interaction-mode {
             .disabled();
@@ -291,8 +317,9 @@ body {
 
     #interaction-mode {
         float: left;
-        padding-left: 10px;
+        padding-left: 8px;
     }
+
     #animation-controls {
         float: right;
         padding-right: 10px;
