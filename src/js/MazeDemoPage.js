@@ -1,15 +1,25 @@
-import {randInt} from './utils.js';
+import {randInt, isMobile} from './utils.js';
 import GitHubLogo from '../../static/images/GitHub-Mark-Light-64px.png';
 import Maze from './Maze.js';
 import Wall from './Wall.js'
 import {WallState} from './Wall.js'
 
 const DISTANCE_MAP_ANIMATION_SPEED = 40; // Delay (in milliseconds) between distance steps.
-
 const ANIMATION_SPEED = 40; // Delay (in milliseconds) between cell visits.
+
+// Min & max values for random mazes in animation mode.
 const MIN_RANDOM = 6;
 const MAX_RANDOM = 30;
 
+// Min & max for minor (i.e. short or narrow) axis of random mazes on mobile.
+const MIN_MOBILE_MINOR = 5;
+const MAX_MOBILE_MINOR = 10;
+
+// Min & max for major (i.e. long or wide) axis of random mazes on mobile.
+const MIN_MOBILE_MAJOR = 10;
+const MAX_MOBILE_MAJOR = 20;
+
+// Min & max values for user input dimensions.
 const MIN_CUSTOM = 3;
 const MAX_CUSTOM = 40;
 
@@ -59,7 +69,10 @@ class MazeDemoPage {
     }
 
     hookEvents() {
-        window.onresize = () => this.updateView();
+        window.onresize = () => {
+            this.updateView();
+            this.updateRanges();
+        };
 
         this.maze$
             .on('mouseover', '.cell', (e) => {
@@ -191,9 +204,33 @@ class MazeDemoPage {
         this.updateView();
     }
 
+    updateRanges() {
+        if (isMobile()) {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape) {
+                this.minRandRows = MIN_MOBILE_MINOR;
+                this.maxRandRows = MAX_MOBILE_MINOR;
+                this.minRandCols = MIN_MOBILE_MAJOR;
+                this.maxRandCols = MAX_MOBILE_MAJOR;
+            } else {
+                this.minRandRows = MIN_MOBILE_MAJOR;
+                this.maxRandRows = MAX_MOBILE_MAJOR;
+                this.minRandCols = MIN_MOBILE_MINOR;
+                this.maxRandCols = MAX_MOBILE_MINOR;
+            }
+        } else {
+            this.minRandRows = MIN_RANDOM;
+            this.maxRandRows = MAX_RANDOM;
+            this.minRandCols = MIN_RANDOM;
+            this.maxRandCols = MAX_RANDOM;
+        }
+    }
+
     updateView() {
         const mazeAspect = this.nRows / this.nCols;
         const screenAspect = window.innerHeight / window.innerWidth;
+
+        $('body').toggleClass('mobile', isMobile() && screenAspect > 1);
 
         this.mazeBg$.css({
             width: screenAspect > mazeAspect ? '80vw' : `${80/mazeAspect}vh` ,
@@ -310,14 +347,15 @@ class MazeDemoPage {
         this.toolbar$.addClass('animating');
         $('#new-maze, #interaction-mode .tool-option').disable();
 
-        let roundsToSkip = 1;
+        this.updateRanges();
 
+        let roundsToSkip = 1;
         this.screenSaverInterval = setInterval(()=>{
             if (roundsToSkip > 0) {
                 roundsToSkip--;
                 if (!roundsToSkip) {
-                    this.nRows = randInt(MIN_RANDOM, MAX_RANDOM);
-                    this.nCols = randInt(MIN_RANDOM, MAX_RANDOM);
+                    this.nRows = randInt(this.minRandRows, this.maxRandRows);
+                    this.nCols = randInt(this.minRandCols, this.maxRandCols);
 
                     this.maze = new Maze(this.nRows, this.nCols);
                     this.setupView();

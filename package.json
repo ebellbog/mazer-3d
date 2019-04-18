@@ -1,7 +1,10 @@
 {
   "scripts": {
-    "start": "webpack-dev-server",
-    "build": "./node_modules/.bin/webpack"
+    "start": "webpack-dev-server --mode=development",
+    "build": "./node_modules/.bin/webpack --mode=production"
+  },
+  "devDependencies": {
+    "webpack-dev-server": "^3.2.1"
   },
   "dependencies": {
     "css-loader": "^2.1.1",
@@ -13,7 +16,6 @@
     "mini-css-extract-plugin": "^0.5.0",
     "style-loader": "^0.23.1",
     "webpack": "^4.29.6",
-    "webpack-cli": "^3.2.3",
-    "webpack-dev-server": "^3.2.1"
+    "webpack-cli": "^3.2.3"
   }
 }

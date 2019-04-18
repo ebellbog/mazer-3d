@@ -1,5 +1,5 @@
-import '../less/style.less';
-import '../less/style.less';
+import '../less/demo.less';
+import '../less/demo-mobile.less';
 import MazeDemoPage from './MazeDemoPage.js';
 import {initUtils} from './utils.js';
 
