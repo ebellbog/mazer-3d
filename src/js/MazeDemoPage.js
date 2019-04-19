@@ -36,10 +36,13 @@ function getColorForNormalizedDistance(distance) {
 
 class MazeDemoPage {
     constructor() {
-        this.nRows = 25;
-        this.nCols = 25;
+        this.updateRanges();
+        this.randomizeDimensions();
 
         this.maze = null;
+
+        this.mobileDevice = null;
+        this.landscapeOrientation =  null;
 
         this.currentMode = InteractionMode.DISTANCE_MAP;
         this.isAnimating = false;
@@ -205,9 +208,14 @@ class MazeDemoPage {
     }
 
     updateRanges() {
-        if (isMobile()) {
-            const isLandscape = window.innerWidth > window.innerHeight;
-            if (isLandscape) {
+        const mobileDevice = isMobile()
+        const landscapeOrientation = window.innerWidth > window.innerHeight;
+        const hasChanged = (mobileDevice !== this.mobileDevice || (mobileDevice && landscapeOrientation !== this.landscapeOrientation));
+
+        if (!hasChanged) return;
+
+        if (mobileDevice) {
+            if (landscapeOrientation) {
                 this.minRandRows = MIN_MOBILE_MINOR;
                 this.maxRandRows = MAX_MOBILE_MINOR;
                 this.minRandCols = MIN_MOBILE_MAJOR;
@@ -224,6 +232,20 @@ class MazeDemoPage {
             this.minRandCols = MIN_RANDOM;
             this.maxRandCols = MAX_RANDOM;
         }
+
+        // Restart animation if ranges change.
+        if (this.mobileDevice !== null && this.landscapeOrientation !== null && this.screenSaverInterval) {
+            this.stopAnimating();
+            this.startAnimating();
+        }
+
+        this.mobileDevice = mobileDevice;
+        this.landscapeOrientation = landscapeOrientation;
+    }
+
+    randomizeDimensions() {
+        this.nRows = randInt(this.minRandRows, this.maxRandRows);
+        this.nCols = randInt(this.minRandCols, this.maxRandCols);
     }
 
     updateView() {
@@ -347,15 +369,12 @@ class MazeDemoPage {
         this.toolbar$.addClass('animating');
         $('#new-maze, #interaction-mode .tool-option').disable();
 
-        this.updateRanges();
-
         let roundsToSkip = 1;
-        this.screenSaverInterval = setInterval(()=>{
+        this.screenSaverInterval = setInterval(() => {
             if (roundsToSkip > 0) {
                 roundsToSkip--;
                 if (!roundsToSkip) {
-                    this.nRows = randInt(this.minRandRows, this.maxRandRows);
-                    this.nCols = randInt(this.minRandCols, this.maxRandCols);
+                    this.randomizeDimensions();
 
                     this.maze = new Maze(this.nRows, this.nCols);
                     this.setupView();
@@ -380,6 +399,8 @@ class MazeDemoPage {
         $('#new-maze, #interaction-mode .tool-option').enable();
 
         clearInterval(this.screenSaverInterval);
+        this.screenSaverInterval = null;
+
         while (this.maze.generateNextCell()) {}
 
         this.renderMaze();
