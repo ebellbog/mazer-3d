@@ -11,20 +11,24 @@ function getPlugins(mode) {
         new webpack.ProvidePlugin({
             $: 'jquery'
         }),
-        new webpack.SourceMapDevToolPlugin({
-            filename: '[file].map',
-            exclude: [/node_modules.+\.js/]
-        }),
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, 'src/index.html'),
-            filename: path.resolve(__dirname, 'dist/index.html'),
+            filename: path.resolve(__dirname, `${mode === 'production' ? '' : 'dist/'}index.html`),
             templateParameters: {
                 isProduction: mode === 'production'
             }
         })
     ];
 
-    if (mode === 'production') plugins.push(new MiniCssExtractPlugin());
+    if (mode === 'production') {
+        plugins.push(new MiniCssExtractPlugin());
+    } else {
+        plugins.push(new webpack.SourceMapDevToolPlugin({
+            filename: '[file].map',
+            exclude: [/node_modules.+\.js/]
+        }));
+    }
+
     return plugins;
 }
 
@@ -38,7 +42,7 @@ module.exports = (env, argv) => {
         externals: argv.mode === 'production' ? {jquery: 'jQuery'} : {},
         output: {
             filename: 'bundle.js',
-            path: path.resolve(__dirname, 'dist'),
+            path: argv.mode === 'production' ? __dirname : path.resolve(__dirname, 'dist'),
         },
         module: {
             rules: [
