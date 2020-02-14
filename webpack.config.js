@@ -42,7 +42,7 @@ module.exports = (env, argv) => {
         externals: argv.mode === 'production' ? {jquery: 'jQuery'} : {},
         output: {
             filename: 'bundle.js',
-            path: argv.mode === 'production' ? __dirname : path.resolve(__dirname, 'dist'),
+            path: path.resolve(__dirname, 'dist'),
         },
         module: {
             rules: [
