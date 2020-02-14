@@ -8,7 +8,7 @@ const DISTANCE_MAP_ANIMATION_SPEED = 40; // Delay (in milliseconds) between dist
 const ANIMATION_SPEED = 40; // Delay (in milliseconds) between cell visits.
 
 // Min & max values for random mazes in animation mode.
-const MIN_RANDOM = 6;
+const MIN_RANDOM = 8;
 const MAX_RANDOM = 30;
 
 // Min & max for minor (i.e. short or narrow) axis of random mazes on mobile.
