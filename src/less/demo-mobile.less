@@ -3,7 +3,9 @@
 .mobile {
     #toolbar {
         height: 5vh;
+        height: calc(var(--vh, 1vh) * 5);
         line-height: 5vh;
+        line-height: calc(var(--vh, 1vh) * 5);
 
         #interaction-mode {
             transform: scale(@scaleAmount);
