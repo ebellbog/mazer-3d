@@ -1,4 +1,4 @@
-import {randInt, isMobile} from './utils.js';
+import {randInt, getDeviceType} from './utils.js';
 import GitHubLogo from '../../static/images/GitHub-Mark-Light-64px.png';
 import Maze from './Maze.js';
 import Wall from './Wall.js'
@@ -41,8 +41,8 @@ class MazeDemoPage {
 
         this.maze = null;
 
-        this.mobileDevice = null;
-        this.landscapeOrientation =  null;
+        this.isMobile = null;
+        this.isLandscape =  null;
 
         this.currentMode = InteractionMode.DISTANCE_MAP;
         this.isAnimating = false;
@@ -208,14 +208,14 @@ class MazeDemoPage {
     }
 
     updateRanges() {
-        const mobileDevice = isMobile()
-        const landscapeOrientation = window.innerWidth > window.innerHeight;
-        const hasChanged = (mobileDevice !== this.mobileDevice || (mobileDevice && landscapeOrientation !== this.landscapeOrientation));
+        const isMobile = getDeviceType()
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const hasChanged = (isMobile !== this.isMobile || (isMobile && isLandscape !== this.isLandscape));
 
         if (!hasChanged) return;
 
-        if (mobileDevice) {
-            if (landscapeOrientation) {
+        if (isMobile) {
+            if (isLandscape) {
                 this.minRandRows = MIN_MOBILE_MINOR;
                 this.maxRandRows = MAX_MOBILE_MINOR;
                 this.minRandCols = MIN_MOBILE_MAJOR;
@@ -234,13 +234,13 @@ class MazeDemoPage {
         }
 
         // Restart animation if ranges change.
-        if (this.mobileDevice !== null && this.landscapeOrientation !== null && this.screenSaverInterval) {
+        if (this.isMobile !== null && this.isLandscape !== null && this.screenSaverInterval) {
             this.stopAnimating();
             this.startAnimating();
         }
 
-        this.mobileDevice = mobileDevice;
-        this.landscapeOrientation = landscapeOrientation;
+        this.isMobile = isMobile;
+        this.isLandscape = isLandscape;
     }
 
     randomizeDimensions() {
@@ -252,7 +252,7 @@ class MazeDemoPage {
         const mazeAspect = this.nRows / this.nCols;
         const screenAspect = window.innerHeight / window.innerWidth;
 
-        $('body').toggleClass('mobile', isMobile() && screenAspect > 1);
+        $('body').toggleClass('mobile', getDeviceType() && screenAspect > 1);
 
         this.mazeBg$.css({
             width: screenAspect > mazeAspect ? '80vw' : `${80/mazeAspect}vh` ,
