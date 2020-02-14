@@ -72,10 +72,10 @@ class MazeDemoPage {
     }
 
     hookEvents() {
-        window.onresize = () => {
+        $(window).on('resize orientationchange', () => {
             this.updateView();
             this.updateRanges();
-        };
+        });
 
         this.maze$
             .on('mouseover', '.cell', (e) => {
