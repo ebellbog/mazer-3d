@@ -249,7 +249,7 @@ class MazeDemoPage {
     }
 
     updateView() {
-        const vh = window.innerHeight * 0.01;
+        const vh = document.documentElement.clientHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
 
         function formatHeight(height) {
@@ -257,7 +257,7 @@ class MazeDemoPage {
         }
 
         const mazeAspect = this.nRows / this.nCols;
-        const screenAspect = window.innerHeight / window.innerWidth;
+        const screenAspect = document.documentElement.clientHeight / document.documentElement.clientWidth
 
         $('body').toggleClass('mobile', getDeviceType() && screenAspect > 1);
 
