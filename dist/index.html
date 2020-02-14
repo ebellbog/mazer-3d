@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Maze Maker</title>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        
+    <link href="main.css" rel="stylesheet"></head>
+    <body>
+        <div id="page-background">
+            <div id="maze-background">
+                <div id="maze"></div>
+            </div>
+            <div id="toolbar">
+                <div id="interaction-mode" class="joined-options">
+                    <button class="tool-option active" id="distance-map">Distance map</button><button class="tool-option" id="shortest-path">Shortest path</button>
+                </div>
+                <div id="animation-controls">
+                    <button id="new-maze" class="tool-option">&#x27F3; New maze (<input id="rows" type="text" value=25> x <input id="cols" type="text" value=25>)</button>
+                    <button id="start-animating" class="tool-option"><span>&#9654;</span> Start animating </button>
+                    <button id="stop-animating" class="tool-option"><span>&#9632;</span> Stop animating </button>
+                </div>
+            </div>
+        </div>
+        <div id="templates" hidden>
+            <div class="cell">
+                <div class="walls"></div>
+                <div class="vertex"></div>
+                <div class="path"></div>
+            </div>
+        </div>
+        <div id="tooltip">
+            <div>
+                <b>Path length:</b>
+                <span id="path-length">0</span>
+            </div>
+            <div>
+                <b>Longest so far:</b>
+                <span id="max-length">0</span>
+            </div>
+        </div>
+        <a id="github-link" href="https://github.com/ebellbog/mazer-3d"/>
+    <script type="text/javascript" src="bundle.js"></script></body>
+</html>

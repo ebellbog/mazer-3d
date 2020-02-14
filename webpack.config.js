@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const mode = 'development';
+const mode = 'production';
 
 function getPlugins(mode) {
     const plugins = [
