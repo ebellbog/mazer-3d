@@ -1,0 +1,354 @@
+// Variables
+
+@bgColor: black;
+@bgColorLight: #333;
+@bgColorDark: #222;
+
+@gradientColor1: #3bb7ff;
+@gradientColor2: #ee42fb;
+
+@wallColor: white;
+@wallWidth: 13%;
+
+@pathStartColor: limegreen;
+@pathEndColor: red;
+@pathMiddleFg: khaki;
+@pathMiddleBg: darken(desaturate(@pathMiddleFg, 20%), 50%);
+
+@tooltipColor: rgba(250, 250, 250, 0.9);
+@tooltipArrowSize: 10px;
+
+// Mixin classes
+
+.centered {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+
+.full-size {
+    width: 100%;
+    height: 100%;
+}
+
+.inset(@amount) {
+    top: @amount;
+    right: @amount;
+    bottom: @amount;
+    left: @amount;
+}
+
+.disabled {
+    opacity: 0.4;
+}
+
+// Main styles
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#page-background {
+    width: 100%;
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    background-image: repeating-linear-gradient(
+        45deg,
+        @bgColorLight,
+        @bgColorLight 20px,
+        @bgColorDark 20px,
+        @bgColorDark 40px
+    );
+}
+
+#maze-background {
+    .centered();
+
+    background-image: linear-gradient(45deg, @gradientColor1, @gradientColor2);
+    overflow: hidden;
+
+    mix-blend-mode: screen;
+
+    &.highlight-foreground {
+        background-image: none;
+        background-color: white;
+    }
+}
+
+#maze {
+    display: grid;
+    grid-gap: 0px;
+
+    background-color: @wallColor;
+    mix-blend-mode: multiply;
+
+    position: relative;
+    .full-size();
+
+    overflow: hidden;
+
+    >.cell {
+        position: relative;
+        .full-size();
+
+        >.walls {
+            background-color: @bgColor;
+            &:hover {
+                background-color: lighten(@bgColor, 60%);
+            }
+
+            position: absolute;
+            top: @wallWidth;
+            left: @wallWidth;
+            bottom: @wallWidth;
+            right: @wallWidth;
+        }
+
+        &.pending {
+            >.walls {
+                .inset(@wallWidth/6);
+            }
+            >.vertex {
+                visibility: hidden;
+            }
+        }
+
+        &.open-left > .walls {
+            left: -1px;
+        }
+        &.open-right > .walls {
+            right: -1px;
+        }
+        &.open-top > .walls {
+            top: -1px;
+        }
+        &.open-bottom > .walls {
+            bottom: -1px;
+        }
+
+        >.vertex {
+            pointer-events: none;
+            position: absolute;
+            background-color: @wallColor;
+            z-index: 1;
+        }
+
+        >.path {
+            pointer-events: none;
+            position: absolute;
+            visibility: hidden;
+            border-radius: 50%;
+        }
+
+        &.path-start {
+            >.path {
+                visibility: visible;
+                background-color: @pathStartColor;
+                .inset(@wallWidth*1.5);
+            }
+        }
+        &.path-middle {
+            >.path {
+                visibility: visible;
+                background-color: @pathMiddleBg;
+                background-image: radial-gradient(@pathMiddleFg 25%, @pathMiddleBg);
+                .inset(@wallWidth*2.25);
+            }
+        }
+        &.path-end {
+            >.path {
+                visibility: visible;
+                background-color: @pathEndColor;
+                .inset(@wallWidth*1.5);
+            }
+        }
+    }
+}
+
+#tooltip {
+    display: none;
+    pointer-events: none;
+
+    position: absolute;
+    top: 20px;
+    left: 20px;
+
+    padding: 8px 10px;
+
+    border-radius: 10px;
+    background-color: @tooltipColor;
+
+    color: #444;
+    font-size: 14px;
+    font-family: sans-serif;
+    line-height: 18px;
+    margin-left: 3px;
+
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+
+    &:before {
+        content: '';
+        width: 0;
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translate(-50%, 0);
+        border-top: @tooltipArrowSize solid @tooltipColor;
+        border-left: @tooltipArrowSize solid transparent;
+        border-right: @tooltipArrowSize solid transparent;
+    }
+}
+
+#toolbar {
+    cursor: default;
+
+    position: absolute;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    min-width: 800px;
+
+    height: 38px;
+    line-height: 38px;
+
+    background-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
+
+    font-size: 16px;
+    font-family: Courier, monospace;
+    color: white;
+
+    .tool-option {
+        background: none;
+        border: none;
+        border-radius: 14px;
+
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+
+        padding: 4px 7px;
+        margin: 0 3px;
+
+        &:focus {
+            outline: none;
+        }
+
+        &:not(.disabled) {
+            cursor: pointer;
+            &:hover {
+                text-decoration: underline;
+
+                input {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        &.active {
+            cursor: default;
+
+            background-image: linear-gradient(140deg, darken(@gradientColor1, 5%), darken(@gradientColor2, 5%));
+            background-color: darken(@gradientColor2, 5%);
+
+            &:hover {
+                text-decoration: none;
+            }
+        }
+
+        &#start-animating span {
+            font-size: 12px;
+        }
+        &#stop-animating span {
+            font-size: 18px;
+        }
+    }
+
+    .joined-options {
+        .tool-option {
+            margin: 0;
+
+            &:not(.active) {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            &.active {
+                box-shadow: inset 0 0 6px rgba(0, 0, 0, .5);
+                border: none;
+            }
+
+            &:first-child {
+                border-right: none;
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+
+                padding-left: 10px;
+            }
+
+            &:last-child {
+                border-left: none;
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+
+                padding-right: 10px;
+            }
+        }
+    }
+
+    &.animating {
+        #start-animating{
+            display: none;
+        }
+        #stop-animating {
+            display: inline-block;
+        }
+    }
+
+    #stop-animating {
+        display: none;
+    }
+
+    #interaction-mode {
+        float: left;
+        padding-left: 8px;
+    }
+
+    #animation-controls {
+        float: right;
+        padding-right: 8px;
+
+        input {
+            background: none;
+            border: none;
+            margin: 0 -6px;
+            padding: 0;
+
+            max-width: 30px;
+            text-align: center;
+
+            color: inherit;
+            font-size: inherit;
+            font-family: inherit;
+        }
+    }
+}
+
+#github-link {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    width: 38px;
+    height: 38px;
+    background-size: 38px 38px;
+
+    opacity: 0.45;
+
+    &:hover {
+        opacity: .8;
+    }
+}

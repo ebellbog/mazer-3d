@@ -1,0 +1,287 @@
+.centered {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.full-size {
+  width: 100%;
+  height: 100%;
+}
+.disabled {
+  opacity: 0.4;
+}
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+#page-background {
+  width: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  background-image: repeating-linear-gradient(45deg, #333, #333 20px, #222 20px, #222 40px);
+}
+#maze-background {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-image: linear-gradient(45deg, #3bb7ff, #ee42fb);
+  overflow: hidden;
+  mix-blend-mode: screen;
+}
+#maze-background.highlight-foreground {
+  background-image: none;
+  background-color: white;
+}
+#maze {
+  display: grid;
+  grid-gap: 0px;
+  background-color: white;
+  mix-blend-mode: multiply;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+#maze > .cell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+#maze > .cell > .walls {
+  background-color: black;
+  position: absolute;
+  top: 13%;
+  left: 13%;
+  bottom: 13%;
+  right: 13%;
+}
+#maze > .cell > .walls:hover {
+  background-color: #999999;
+}
+#maze > .cell.pending > .walls {
+  top: 2.16666667%;
+  right: 2.16666667%;
+  bottom: 2.16666667%;
+  left: 2.16666667%;
+}
+#maze > .cell.pending > .vertex {
+  visibility: hidden;
+}
+#maze > .cell.open-left > .walls {
+  left: -1px;
+}
+#maze > .cell.open-right > .walls {
+  right: -1px;
+}
+#maze > .cell.open-top > .walls {
+  top: -1px;
+}
+#maze > .cell.open-bottom > .walls {
+  bottom: -1px;
+}
+#maze > .cell > .vertex {
+  pointer-events: none;
+  position: absolute;
+  background-color: white;
+  z-index: 1;
+}
+#maze > .cell > .path {
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+  border-radius: 50%;
+}
+#maze > .cell.path-start > .path {
+  visibility: visible;
+  background-color: limegreen;
+  top: 19.5%;
+  right: 19.5%;
+  bottom: 19.5%;
+  left: 19.5%;
+}
+#maze > .cell.path-middle > .path {
+  visibility: visible;
+  background-color: #625b1b;
+  background-image: radial-gradient(khaki 25%, #625b1b);
+  top: 29.25%;
+  right: 29.25%;
+  bottom: 29.25%;
+  left: 29.25%;
+}
+#maze > .cell.path-end > .path {
+  visibility: visible;
+  background-color: red;
+  top: 19.5%;
+  right: 19.5%;
+  bottom: 19.5%;
+  left: 19.5%;
+}
+#tooltip {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background-color: rgba(250, 250, 250, 0.9);
+  color: #444;
+  font-size: 14px;
+  font-family: sans-serif;
+  line-height: 18px;
+  margin-left: 3px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+}
+#tooltip:before {
+  content: '';
+  width: 0;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  border-top: 10px solid rgba(250, 250, 250, 0.9);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+#toolbar {
+  cursor: default;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  min-width: 800px;
+  height: 38px;
+  line-height: 38px;
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
+  font-size: 16px;
+  font-family: Courier, monospace;
+  color: white;
+}
+#toolbar .tool-option {
+  background: none;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  padding: 4px 7px;
+  margin: 0 3px;
+}
+#toolbar .tool-option:focus {
+  outline: none;
+}
+#toolbar .tool-option:not(.disabled) {
+  cursor: pointer;
+}
+#toolbar .tool-option:not(.disabled):hover {
+  text-decoration: underline;
+}
+#toolbar .tool-option:not(.disabled):hover input {
+  text-decoration: underline;
+}
+#toolbar .tool-option.active {
+  cursor: default;
+  background-image: linear-gradient(140deg, #21aeff, #ec29fa);
+  background-color: #ec29fa;
+}
+#toolbar .tool-option.active:hover {
+  text-decoration: none;
+}
+#toolbar .tool-option#start-animating span {
+  font-size: 12px;
+}
+#toolbar .tool-option#stop-animating span {
+  font-size: 18px;
+}
+#toolbar .joined-options .tool-option {
+  margin: 0;
+}
+#toolbar .joined-options .tool-option:not(.active) {
+  background: rgba(0, 0, 0, 0.2);
+}
+#toolbar .joined-options .tool-option.active {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  border: none;
+}
+#toolbar .joined-options .tool-option:first-child {
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-left: 10px;
+}
+#toolbar .joined-options .tool-option:last-child {
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-right: 10px;
+}
+#toolbar.animating #start-animating {
+  display: none;
+}
+#toolbar.animating #stop-animating {
+  display: inline-block;
+}
+#toolbar #stop-animating {
+  display: none;
+}
+#toolbar #interaction-mode {
+  float: left;
+  padding-left: 8px;
+}
+#toolbar #animation-controls {
+  float: right;
+  padding-right: 8px;
+}
+#toolbar #animation-controls input {
+  background: none;
+  border: none;
+  margin: 0 -6px;
+  padding: 0;
+  max-width: 30px;
+  text-align: center;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+}
+#github-link {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  background-size: 38px 38px;
+  opacity: 0.45;
+}
+#github-link:hover {
+  opacity: 0.8;
+}
+
+.mobile #toolbar {
+  height: 5vh;
+  height: calc(var(--vh, 1vh) * 5);
+  line-height: 5vh;
+  line-height: calc(var(--vh, 1vh) * 5);
+}
+.mobile #toolbar #interaction-mode {
+  transform: scale(2.1);
+  transform-origin: left;
+  padding-left: 4px;
+}
+.mobile #toolbar #animation-controls {
+  transform: scale(2.1);
+  transform-origin: right;
+  padding-right: 0;
+}
+.mobile #toolbar #animation-controls #new-maze {
+  display: none;
+}
+.mobile #github-link {
+  width: 80px;
+  height: 80px;
+  background-size: 80px 80px;
+}
+

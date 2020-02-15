@@ -6,50 +6,64 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const mode = 'development';
 
-const plugins = [
-    new webpack.ProvidePlugin({
-        $: 'jquery'
-    }),
-    new webpack.SourceMapDevToolPlugin({
-        filename: '[file].map',
-        exclude: [/node_modules.+\.js/]
-    }),
-    new HtmlWebpackPlugin({
-        template: path.resolve(__dirname, 'src/index.html'),
-        filename: path.resolve(__dirname, 'dist/index.html'),
-        templateParameters: {
-            isProduction: mode === 'production'
-        }
-    })
-];
+function getPlugins(mode) {
+    const plugins = [
+        new webpack.ProvidePlugin({
+            $: 'jquery'
+        }),
+        new HtmlWebpackPlugin({
+            template: path.resolve(__dirname, 'src/index.html'),
+            filename: path.resolve(__dirname, `${mode === 'production' ? '' : 'dist/'}index.html`),
+            templateParameters: {
+                isProduction: mode === 'production'
+            }
+        })
+    ];
 
-const config = {
-    devServer: {
-        contentBase: path.resolve(__dirname, 'dist'),
-    },
-    devtool: 'cheap-module-eval-source-map',
-    entry: './src/js/index.js',
-    externals: mode === 'production' ? {jquery: 'jQuery'} : {},
-    output: {
-        filename: 'bundle.js',
-        path: path.resolve(__dirname, 'dist'),
-    },
-    mode: mode,
-    module: {
-        rules: [
-            { 
-                test: /\.less$/,
-                use: [
-                    mode === 'production' ? 
-                        MiniCssExtractPlugin.loader : 
-                        'style-loader',
-                        'css-loader', 
-                        'less-loader'
-                ],
-            },
-        ]
-    },
-    plugins: mode === 'production' ? plugins.concat([new MiniCssExtractPlugin()]) : plugins
-};
+    if (mode === 'production') {
+        plugins.push(new MiniCssExtractPlugin());
+    } else {
+        plugins.push(new webpack.SourceMapDevToolPlugin({
+            filename: '[file].map',
+            exclude: [/node_modules.+\.js/]
+        }));
+    }
 
-module.exports = config;
+    return plugins;
+}
+
+module.exports = (env, argv) => {
+    return {
+        devServer: {
+            contentBase: path.resolve(__dirname, 'dist'),
+        },
+        devtool: 'cheap-module-eval-source-map',
+        entry: './src/js/index.js',
+        externals: argv.mode === 'production' ? {jquery: 'jQuery'} : {},
+        output: {
+            filename: 'bundle.js',
+            path: path.resolve(__dirname, 'dist'),
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.less$/,
+                    use: [
+                        argv.mode === 'production' ?
+                            MiniCssExtractPlugin.loader :
+                            'style-loader',
+                            'css-loader',
+                            'less-loader'
+                    ],
+                },
+                {
+                    test: /\.png$/,
+                    use: [
+                        'file-loader'
+                    ]
+                }
+            ]
+        },
+        plugins: getPlugins(argv.mode)
+    };
+}

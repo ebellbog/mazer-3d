@@ -1,0 +1,32 @@
+@scaleAmount: 2.1;
+
+.mobile {
+    #toolbar {
+        height: 5vh;
+        height: calc(var(--vh, 1vh) * 5);
+        line-height: 5vh;
+        line-height: calc(var(--vh, 1vh) * 5);
+
+        #interaction-mode {
+            transform: scale(@scaleAmount);
+            transform-origin: left;
+            padding-left: 4px;
+        }
+
+        #animation-controls {
+            transform: scale(@scaleAmount);
+            transform-origin: right;
+            padding-right: 0;
+
+            #new-maze {
+                display: none;
+            }
+        }
+    }
+
+    #github-link {
+        width: 80px;
+        height: 80px;
+        background-size: 80px 80px;
+    }
+}

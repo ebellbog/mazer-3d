@@ -8,6 +8,7 @@ class Maze {
         this.rows = rows;
         this.cols = cols;
         this.data = [];
+        this.visitedCellsCount = 0;
 
         const dataTypes = [
             [Vertex, Wall],
@@ -30,26 +31,20 @@ class Maze {
         }, []);
     }
 
-    generateMaze(randomize) {
-        const cells = this.getCells();
-        if (randomize) cells.shuffle();
-
-        cells.forEach((cell) => cell.visit());
+    generateMaze() {
+        if (this.visitedCellsCount > 0) return;
+        while (this.generateNextCell()) {}
     }
 
-    getVisitFunction(randomize) {
+    generateNextCell() {
         const cells = this.getCells();
-        if (randomize) cells.shuffle();
+        if (this.visitedCellsCount === cells.length) return false;
 
-        let index = 0;
-        return function(){ 
-            if(index < cells.length){
-                const cell = cells[index];
-                cell.visit();
-                index+=1;
-            }
-            return index ===cells.length ? false : true;
-        }
+        const cell = cells[this.visitedCellsCount];
+        cell.visit();
+        this.visitedCellsCount++;
+
+        return true;
     }
 
     /**
@@ -81,7 +76,7 @@ class Maze {
         }
     }
 
-     /**
+    /**
      * Calculate distance of all maze cells from cell at given index,
      * then use color to visualize distance.
      *
@@ -123,7 +118,7 @@ class Maze {
 
         let prevCell = endCell;
         while (prevCell !== null) {
-            path.push(prevCell)
+            path.unshift(prevCell)
             prevCell = previousDict[prevCell];
         }
 
